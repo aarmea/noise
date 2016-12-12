@@ -13,9 +13,8 @@
     tools:context="org.thoughtcrime.meshmessenger.ConversationList"
     tools:showIn="@layout/activity_conversation_list">
 
-    <TextView
-        android:text="Hello World!"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/textView" />
+    <ListView
+        android:id="@+id/content_conversation_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 </RelativeLayout>

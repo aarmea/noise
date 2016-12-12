@@ -19,4 +19,10 @@ public class UnknownMessage extends BaseModel {
     public void setData(Blob data) {
         this.data = data;
     }
+
+    // XXX Prototyping only
+    public String toString() {
+        String dataString = new String(this.data.getBlob());
+        return dataString;
+    }
 }
