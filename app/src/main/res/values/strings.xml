@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Mesh Messenger</string>
+    <string name="raw_message_view_title">Raw Message List</string>
     <string name="action_settings">Settings</string>
 </resources>

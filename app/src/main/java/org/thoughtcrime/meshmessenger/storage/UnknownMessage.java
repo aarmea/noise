@@ -20,7 +20,7 @@ public class UnknownMessage extends BaseModel {
         this.data = data;
     }
 
-    // XXX Prototyping only
+    // Raw encrypted data, used only for debugging purposes
     public String toString() {
         String dataString = new String(this.data.getBlob());
         return dataString;

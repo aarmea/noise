@@ -44,10 +44,9 @@ public class RawMessageList extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        setTitle(R.string.app_name);
+        setTitle(R.string.raw_message_view_title);
 
         // TODO: Use a query list that's smarter about not copying the entire list at once
-        // TODO: Make the actual messages table and hook up this ListView to that instead
         messages = SQLite.select().from(UnknownMessage.class).orderBy(UnknownMessage_Table.data, true).flowQueryList();
         messages.registerForContentChanges(this);
         adapter = new ArrayAdapter<UnknownMessage>(this, android.R.layout.simple_list_item_1, messages);
@@ -62,7 +61,6 @@ public class RawMessageList extends AppCompatActivity {
         ListView listView = (ListView) findViewById(R.id.content_raw_message_list_view);
         listView.setAdapter(adapter);
 
-        // XXX Prototyping only
         final Transaction makeDummyMessageTransaction = messageDb.beginTransactionAsync(new ITransaction() {
             @Override
             public void execute(DatabaseWrapper databaseWrapper) {
