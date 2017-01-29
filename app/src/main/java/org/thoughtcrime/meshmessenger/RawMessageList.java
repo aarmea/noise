@@ -27,8 +27,8 @@ import org.thoughtcrime.meshmessenger.storage.UnknownMessage_Table;
 
 import java.util.UUID;
 
-public class ConversationList extends AppCompatActivity {
-    public static final String TAG = "ConversationList";
+public class RawMessageList extends AppCompatActivity {
+    public static final String TAG = "RawMessageList";
 
     private DatabaseDefinition messageDb;
     private FlowQueryList<UnknownMessage> messages;
@@ -40,7 +40,7 @@ public class ConversationList extends AppCompatActivity {
 
         messageDb = FlowManager.getDatabase(MessageDatabase.class);
 
-        setContentView(R.layout.activity_conversation_list);
+        setContentView(R.layout.activity_raw_message_list);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -59,7 +59,7 @@ public class ConversationList extends AppCompatActivity {
             }
         });
 
-        ListView listView = (ListView) findViewById(R.id.content_conversation_list_view);
+        ListView listView = (ListView) findViewById(R.id.content_raw_message_list_view);
         listView.setAdapter(adapter);
 
         // XXX Prototyping only
@@ -91,7 +91,7 @@ public class ConversationList extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_conversation_list, menu);
+        getMenuInflater().inflate(R.menu.menu_raw_message_list, menu);
         return true;
     }
 

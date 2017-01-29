@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/content_conversation_list"
+    android:id="@+id/content_raw_message_list"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/activity_vertical_margin"
@@ -10,11 +10,11 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="org.thoughtcrime.meshmessenger.ConversationList"
-    tools:showIn="@layout/activity_conversation_list">
+    tools:context="org.thoughtcrime.meshmessenger.RawMessageList"
+    tools:showIn="@layout/activity_raw_message_list">
 
     <ListView
-        android:id="@+id/content_conversation_list_view"
+        android:id="@+id/content_raw_message_list_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 </RelativeLayout>
