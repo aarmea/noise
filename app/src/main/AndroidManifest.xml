@@ -3,12 +3,13 @@
     package="org.thoughtcrime.meshmessenger">
 
     <application
-        android:name="MeshMessengerApplication"
+        android:name=".MeshMessengerApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <activity
             android:name=".RawMessageList"
             android:label="@string/app_name"
@@ -19,6 +20,33 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".sync.bluetooth.BluetoothLeSyncService"
+            android:enabled="true"
+            android:exported="false" />
+
+        <receiver
+            android:name=".sync.BootStarter"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
+
+    <!-- Start sync services on boot -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- TODO: boot completed broadcast receiver here too -->
+
+    <!-- Bluetooth syncing -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+
+    <!-- False because we also plan to have Wi-Fi Direct, ultrasound, and Internet syncing -->
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="false" />
 
 </manifest>
