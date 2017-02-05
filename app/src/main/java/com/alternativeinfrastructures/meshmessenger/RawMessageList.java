@@ -1,4 +1,4 @@
-package org.thoughtcrime.meshmessenger;
+package com.alternativeinfrastructures.meshmessenger;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -21,9 +21,9 @@ import com.raizlabs.android.dbflow.structure.database.DatabaseWrapper;
 import com.raizlabs.android.dbflow.structure.database.transaction.ITransaction;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 
-import org.thoughtcrime.meshmessenger.storage.MessageDatabase;
-import org.thoughtcrime.meshmessenger.storage.UnknownMessage;
-import org.thoughtcrime.meshmessenger.storage.UnknownMessage_Table;
+import com.alternativeinfrastructures.meshmessenger.storage.MessageDatabase;
+import com.alternativeinfrastructures.meshmessenger.storage.UnknownMessage;
+import com.alternativeinfrastructures.meshmessenger.storage.UnknownMessage_Table;
 
 import java.util.UUID;
 

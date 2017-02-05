@@ -1,4 +1,4 @@
-package org.thoughtcrime.meshmessenger.storage;
+package com.alternativeinfrastructures.meshmessenger.storage;
 
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;

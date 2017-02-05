@@ -1,10 +1,10 @@
-package org.thoughtcrime.meshmessenger.sync;
+package com.alternativeinfrastructures.meshmessenger.sync;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import org.thoughtcrime.meshmessenger.sync.bluetooth.BluetoothLeSyncService;
+import com.alternativeinfrastructures.meshmessenger.sync.bluetooth.BluetoothLeSyncService;
 
 public class BootStarter extends BroadcastReceiver {
     @Override

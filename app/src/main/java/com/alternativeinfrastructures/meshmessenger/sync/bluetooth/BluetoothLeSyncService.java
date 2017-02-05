@@ -1,4 +1,4 @@
-package org.thoughtcrime.meshmessenger.sync.bluetooth;
+package com.alternativeinfrastructures.meshmessenger.sync.bluetooth;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -10,7 +10,7 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
-import org.thoughtcrime.meshmessenger.R;
+import com.alternativeinfrastructures.meshmessenger.R;
 
 public class BluetoothLeSyncService extends Service {
     public static final String TAG = "BluetoothLeSyncService";

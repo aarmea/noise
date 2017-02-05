@@ -7,7 +7,7 @@ android {
     compileSdkVersion 25
     buildToolsVersion "25.0.0"
     defaultConfig {
-        applicationId "org.thoughtcrime.meshmessenger"
+        applicationId "com.alternativeinfrastructures.meshmessenger"
         minSdkVersion 19
         targetSdkVersion 25
         versionCode 1

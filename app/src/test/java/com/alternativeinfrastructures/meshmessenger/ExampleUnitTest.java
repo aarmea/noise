@@ -1,4 +1,4 @@
-package org.thoughtcrime.meshmessenger;
+package com.alternativeinfrastructures.meshmessenger;
 
 import org.junit.Test;
 
