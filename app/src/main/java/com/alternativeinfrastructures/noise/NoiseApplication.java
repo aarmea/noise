@@ -1,4 +1,4 @@
-package com.alternativeinfrastructures.meshmessenger;
+package com.alternativeinfrastructures.noise;
 
 import android.app.Application;
 import android.content.Intent;
@@ -6,9 +6,9 @@ import android.content.Intent;
 import com.raizlabs.android.dbflow.config.FlowConfig;
 import com.raizlabs.android.dbflow.config.FlowManager;
 
-import com.alternativeinfrastructures.meshmessenger.sync.bluetooth.BluetoothLeSyncService;
+import com.alternativeinfrastructures.noise.sync.bluetooth.BluetoothLeSyncService;
 
-public class MeshMessengerApplication extends Application {
+public class NoiseApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();

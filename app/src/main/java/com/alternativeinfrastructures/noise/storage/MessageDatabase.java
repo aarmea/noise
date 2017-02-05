@@ -1,4 +1,4 @@
-package com.alternativeinfrastructures.meshmessenger.storage;
+package com.alternativeinfrastructures.noise.storage;
 
 import com.raizlabs.android.dbflow.annotation.Database;
 

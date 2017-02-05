@@ -1,4 +1,4 @@
-package com.alternativeinfrastructures.meshmessenger;
+package com.alternativeinfrastructures.noise;
 
 import org.junit.Test;
 

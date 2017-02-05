@@ -1,4 +1,4 @@
-package com.alternativeinfrastructures.meshmessenger;
+package com.alternativeinfrastructures.noise;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -21,9 +21,9 @@ import com.raizlabs.android.dbflow.structure.database.DatabaseWrapper;
 import com.raizlabs.android.dbflow.structure.database.transaction.ITransaction;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 
-import com.alternativeinfrastructures.meshmessenger.storage.MessageDatabase;
-import com.alternativeinfrastructures.meshmessenger.storage.UnknownMessage;
-import com.alternativeinfrastructures.meshmessenger.storage.UnknownMessage_Table;
+import com.alternativeinfrastructures.noise.storage.MessageDatabase;
+import com.alternativeinfrastructures.noise.storage.UnknownMessage;
+import com.alternativeinfrastructures.noise.storage.UnknownMessage_Table;
 
 import java.util.UUID;
 
