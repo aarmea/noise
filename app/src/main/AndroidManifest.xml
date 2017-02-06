@@ -38,7 +38,6 @@
 
     <!-- Start sync services on boot -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <!-- TODO: boot completed broadcast receiver here too -->
 
     <!-- Bluetooth syncing -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
