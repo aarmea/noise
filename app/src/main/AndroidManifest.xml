@@ -3,7 +3,7 @@
     package="com.alternativeinfrastructures.noise">
 
     <application
-        android:name="com.alternativeinfrastructures.noise.NoiseApplication"
+        android:name=".NoiseApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
