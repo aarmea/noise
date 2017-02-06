@@ -1,4 +1,4 @@
-package com.alternativeinfrastructures.noise.views;
+package com.alternativeinfrastructures.noise.views.debug;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;

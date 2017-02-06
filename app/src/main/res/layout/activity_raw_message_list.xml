@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="com.alternativeinfrastructures.noise.views.RawMessageList">
+    tools:context="com.alternativeinfrastructures.noise.views.debug.RawMessageList">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"

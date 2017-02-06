@@ -22,7 +22,7 @@
         </activity>
 
         <activity
-            android:name=".views.RawMessageList"
+            android:name=".views.debug.RawMessageList"
             android:label="@string/raw_message_view_title"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>

@@ -11,6 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.alternativeinfrastructures.noise.R;
+import com.alternativeinfrastructures.noise.views.debug.RawMessageList;
 
 public class ConversationList extends AppCompatActivity {
 
