@@ -44,12 +44,11 @@ public class ConversationList extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
         // TODO: Hide the debug-oriented options in release builds
-        if (id == R.id.action_raw_message_list) {
-            startActivity(new Intent(this, RawMessageList.class));
-            return true;
+        switch (item.getItemId()) {
+            case R.id.action_raw_message_list:
+                startActivity(new Intent(this, RawMessageList.class));
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
