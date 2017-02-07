@@ -3,7 +3,6 @@
     <string name="conversation_view_title">Noise</string>
     <string name="raw_message_view_title">Raw Messages</string>
     <string name="action_raw_message_list">Debug: raw messages</string>
-    <string name="action_settings">Settings</string>
 
     <string name="bluetooth_not_supported">Bluetooth LE is not supported on this device.</string>
     <string name="bluetooth_enabling">Turning on Bluetooth to send and receive messages.</string>
