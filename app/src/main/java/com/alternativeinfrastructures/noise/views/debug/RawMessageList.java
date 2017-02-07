@@ -24,7 +24,8 @@ import com.alternativeinfrastructures.noise.storage.MessageDatabase;
 import com.alternativeinfrastructures.noise.storage.UnknownMessage;
 import com.alternativeinfrastructures.noise.storage.UnknownMessage_Table;
 
-import java.util.UUID;
+import java.math.BigInteger;
+import java.security.SecureRandom;
 
 public class RawMessageList extends AppCompatActivity {
     public static final String TAG = "RawMessageList";
@@ -32,6 +33,8 @@ public class RawMessageList extends AppCompatActivity {
     private DatabaseDefinition messageDb;
     private FlowQueryList<UnknownMessage> messages;
     private ArrayAdapter<UnknownMessage> adapter;
+
+    private SecureRandom random = new SecureRandom();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +67,7 @@ public class RawMessageList extends AppCompatActivity {
             @Override
             public void execute(DatabaseWrapper databaseWrapper) {
                 Blob messageBlob = new Blob();
-                messageBlob.setBlob(UUID.randomUUID().toString().getBytes());
+                messageBlob.setBlob(new BigInteger(1024, random).toByteArray());
                 UnknownMessage message = new UnknownMessage();
                 message.setData(messageBlob);
                 message.save(databaseWrapper);

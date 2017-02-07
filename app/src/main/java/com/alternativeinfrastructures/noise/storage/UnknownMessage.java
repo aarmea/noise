@@ -1,5 +1,7 @@
 package com.alternativeinfrastructures.noise.storage;
 
+import android.util.Base64;
+
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
 import com.raizlabs.android.dbflow.data.Blob;
@@ -22,7 +24,6 @@ public class UnknownMessage extends BaseModel {
 
     // Raw encrypted data, used only for debugging purposes
     public String toString() {
-        String dataString = new String(this.data.getBlob());
-        return dataString;
+        return Base64.encodeToString(this.data.getBlob(), Base64.NO_WRAP);
     }
 }
