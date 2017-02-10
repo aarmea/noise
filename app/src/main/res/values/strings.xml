@@ -4,6 +4,8 @@
     <string name="raw_message_view_title">Raw Messages</string>
     <string name="action_raw_message_list">Debug: raw messages</string>
 
-    <string name="bluetooth_not_supported">Bluetooth LE is not supported on this device.</string>
-    <string name="bluetooth_enabling">Turning on Bluetooth to send and receive messages.</string>
+    <string name="bluetooth_not_supported">Noise cannot sync over Bluetooth because Bluetooth LE is not supported on this device.</string>
+    <string name="bluetooth_ask">Enable Bluetooth to let Noise send and receive messages.</string>
+    <string name="bluetooth_sync_started">Bluetooth is on. Noise will now send and receive messages in the background.</string>
+    <string name="bluetooth_sync_stopped">Bluetooth is off. Noise will not be able to send or receive messages.</string>
 </resources>

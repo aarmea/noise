@@ -15,6 +15,6 @@ public class NoiseApplication extends Application {
 
         FlowManager.init(new FlowConfig.Builder(this).build());
 
-        startService(new Intent(this, BluetoothLeSyncService.class));
+        BluetoothLeSyncService.startOrPromptBluetooth(this);
     }
 }
