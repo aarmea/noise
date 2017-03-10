@@ -24,8 +24,8 @@ import com.alternativeinfrastructures.noise.R;
 
 import java.util.UUID;
 
-public class BluetoothLeSyncService extends Service {
-    public static final String TAG = "BluetoothLeSyncService";
+public class BluetoothSyncService extends Service {
+    public static final String TAG = "BluetoothSyncService";
     public static final UUID SERVICE_UUID_HALF = UUID.fromString("5ac825f4-6084-42a6-0000-000000000000");
 
     private boolean started = false;
@@ -34,7 +34,7 @@ public class BluetoothLeSyncService extends Service {
     private BluetoothLeAdvertiser bluetoothLeAdvertiser;
     private BluetoothLeScanner bluetoothLeScanner;
 
-    public BluetoothLeSyncService() {
+    public BluetoothSyncService() {
     }
 
     @Override
@@ -45,7 +45,8 @@ public class BluetoothLeSyncService extends Service {
 
     // TODO: On some phones, this incorrectly returns false when the Bluetooth radio is off even though BLE advertise is supported
     public static boolean isSupported(Context context) {
-        if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE))
+        PackageManager packageManager = context.getPackageManager();
+        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) || !packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH))
             return false;
 
         BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
@@ -63,20 +64,20 @@ public class BluetoothLeSyncService extends Service {
     }
 
     public static void startOrPromptBluetooth(Context context) {
-        if (!BluetoothLeSyncService.isSupported(context)) {
+        if (!BluetoothSyncService.isSupported(context)) {
             Log.d(TAG, "BLE not supported, not starting BLE sync service");
             Toast.makeText(context, R.string.bluetooth_not_supported, Toast.LENGTH_LONG).show();
             return;
         }
 
-        if (BluetoothLeSyncService.isStartable(context)) {
+        if (BluetoothSyncService.isStartable(context)) {
             Log.d(TAG, "BLE supported and Bluetooth is on; starting BLE sync service");
-            context.startService(new Intent(context, BluetoothLeSyncService.class));
+            context.startService(new Intent(context, BluetoothSyncService.class));
         } else {
             Log.d(TAG, "BLE supported but Bluetooth is off; will prompt for Bluetooth and start once it's on");
             Toast.makeText(context, R.string.bluetooth_ask, Toast.LENGTH_LONG).show();
             context.startActivity(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
-            // BluetoothLeSyncServiceManager will start this service once Bluetooth is on.
+            // BluetoothSyncServiceManager will start this service once Bluetooth is on.
         }
     }
 

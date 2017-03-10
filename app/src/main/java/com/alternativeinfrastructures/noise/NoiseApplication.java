@@ -5,7 +5,7 @@ import android.app.Application;
 import com.raizlabs.android.dbflow.config.FlowConfig;
 import com.raizlabs.android.dbflow.config.FlowManager;
 
-import com.alternativeinfrastructures.noise.sync.bluetooth.BluetoothLeSyncService;
+import com.alternativeinfrastructures.noise.sync.bluetooth.BluetoothSyncService;
 
 public class NoiseApplication extends Application {
     @Override
@@ -14,6 +14,6 @@ public class NoiseApplication extends Application {
 
         FlowManager.init(new FlowConfig.Builder(this).build());
 
-        BluetoothLeSyncService.startOrPromptBluetooth(this);
+        BluetoothSyncService.startOrPromptBluetooth(this);
     }
 }

@@ -28,7 +28,7 @@
         </activity>
 
         <service
-            android:name=".sync.bluetooth.BluetoothLeSyncService"
+            android:name=".sync.bluetooth.BluetoothSyncService"
             android:enabled="true"
             android:exported="false" />
 
@@ -42,7 +42,7 @@
         </receiver>
 
         <receiver
-            android:name=".sync.bluetooth.BluetoothLeSyncServiceManager"
+            android:name=".sync.bluetooth.BluetoothSyncServiceManager"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
