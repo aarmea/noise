@@ -9,7 +9,12 @@ android {
     defaultConfig {
         applicationId "com.alternativeinfrastructures.noise"
         minSdkVersion 21
-        targetSdkVersion 25
+
+        // Higher SDK versions require asking the user for location permissions
+        // http://stackoverflow.com/a/39892691
+        // https://github.com/anthonycr/Grant makes asking much easier
+        targetSdkVersion 22
+
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
