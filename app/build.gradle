@@ -13,6 +13,7 @@ android {
         // Higher SDK versions require asking the user for location permissions
         // http://stackoverflow.com/a/39892691
         // https://github.com/anthonycr/Grant makes asking much easier
+        //noinspection OldTargetApi
         targetSdkVersion 22
 
         versionCode 1
@@ -35,6 +36,10 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.0.1'
     compile 'com.android.support:design:25.0.1'
     testCompile 'junit:junit:4.12'
+
+    compile group: 'net.vidageek', name: 'mirror', version: '1.6.1'
+
+    compile 'com.squareup.okio:okio:1.11.0'
 
     apt "com.github.Raizlabs.DBFlow:dbflow-processor:${dbflow_version}"
     // use kapt for kotlin apt

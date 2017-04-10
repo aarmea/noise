@@ -14,6 +14,9 @@ public class UnknownMessage extends BaseModel {
     @PrimaryKey
     private Blob data;
 
+    // TODO: Numeric pad, date, etc. needed to implement some variant of hashcash
+    // TODO: Implement a way to get a (Bloom filter?) bit string that describes the entire contents of this table (ideally directly in SQLite/DBFlow)
+
     public Blob getData() {
         return data;
     }
