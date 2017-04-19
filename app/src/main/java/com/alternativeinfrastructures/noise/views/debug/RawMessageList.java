@@ -10,17 +10,11 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.alternativeinfrastructures.noise.R;
-import com.raizlabs.android.dbflow.config.DatabaseDefinition;
-import com.raizlabs.android.dbflow.config.FlowManager;
 import com.raizlabs.android.dbflow.data.Blob;
 import com.raizlabs.android.dbflow.list.FlowCursorList;
 import com.raizlabs.android.dbflow.list.FlowQueryList;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
-import com.raizlabs.android.dbflow.structure.database.DatabaseWrapper;
-import com.raizlabs.android.dbflow.structure.database.transaction.ITransaction;
-import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 
-import com.alternativeinfrastructures.noise.storage.MessageDatabase;
 import com.alternativeinfrastructures.noise.storage.UnknownMessage;
 import com.alternativeinfrastructures.noise.storage.UnknownMessage_Table;
 
@@ -30,7 +24,6 @@ import java.security.SecureRandom;
 public class RawMessageList extends AppCompatActivity {
     public static final String TAG = "RawMessageList";
 
-    private DatabaseDefinition messageDb;
     private FlowQueryList<UnknownMessage> messages;
     private ArrayAdapter<UnknownMessage> adapter;
 
@@ -39,8 +32,6 @@ public class RawMessageList extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        messageDb = FlowManager.getDatabase(MessageDatabase.class);
 
         setContentView(R.layout.activity_raw_message_list);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -63,27 +54,13 @@ public class RawMessageList extends AppCompatActivity {
         ListView listView = (ListView) findViewById(R.id.content_raw_message_list_view);
         listView.setAdapter(adapter);
 
-        final Transaction makeDummyMessageTransaction = messageDb.beginTransactionAsync(new ITransaction() {
-            @Override
-            public void execute(DatabaseWrapper databaseWrapper) {
-                Blob messageBlob = new Blob();
-                messageBlob.setBlob(new BigInteger(1024, random).toByteArray());
-                UnknownMessage message = new UnknownMessage();
-                message.setData(messageBlob);
-                message.save(databaseWrapper);
-            }
-        }).success(new Transaction.Success() {
-            @Override
-            public void onSuccess(Transaction transaction) {
-                Log.d(TAG, "Generated an unknown message in storage");
-            }
-        }).build();
-
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                makeDummyMessageTransaction.execute();
+                Blob messageBlob = new Blob();
+                messageBlob.setBlob(new BigInteger(1024, random).toByteArray());
+                UnknownMessage.signAndSaveAsync(messageBlob);
             }
         });
     }
