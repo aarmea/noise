@@ -10,7 +10,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.alternativeinfrastructures.noise.R;
-import com.raizlabs.android.dbflow.data.Blob;
 import com.raizlabs.android.dbflow.list.FlowCursorList;
 import com.raizlabs.android.dbflow.list.FlowQueryList;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
@@ -18,16 +17,11 @@ import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.alternativeinfrastructures.noise.storage.UnknownMessage;
 import com.alternativeinfrastructures.noise.storage.UnknownMessage_Table;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
-
 public class RawMessageList extends AppCompatActivity {
     public static final String TAG = "RawMessageList";
 
     private FlowQueryList<UnknownMessage> messages;
     private ArrayAdapter<UnknownMessage> adapter;
-
-    private SecureRandom random = new SecureRandom();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +34,7 @@ public class RawMessageList extends AppCompatActivity {
         setTitle(R.string.raw_message_view_title);
 
         // TODO: Use a query list that's smarter about not copying the entire list at once
-        messages = SQLite.select().from(UnknownMessage.class).orderBy(UnknownMessage_Table.data, true).flowQueryList();
+        messages = SQLite.select().from(UnknownMessage.class).orderBy(UnknownMessage_Table.payload, true).flowQueryList();
         messages.registerForContentChanges(this);
         adapter = new ArrayAdapter<UnknownMessage>(this, android.R.layout.simple_list_item_1, messages);
         messages.addOnCursorRefreshListener(new FlowCursorList.OnCursorRefreshListener<UnknownMessage>() {
@@ -58,9 +52,12 @@ public class RawMessageList extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Blob messageBlob = new Blob();
-                messageBlob.setBlob(new BigInteger(1024, random).toByteArray());
-                UnknownMessage.signAndSaveAsync(messageBlob);
+                try {
+                    byte[] payload = "This is an unencrypted test message".getBytes();
+                    UnknownMessage.createAndSignAsync(payload);
+                } catch (UnknownMessage.PayloadTooLargeException e) {
+                    Log.e(TAG, "Message not created", e);
+                }
             }
         });
     }
