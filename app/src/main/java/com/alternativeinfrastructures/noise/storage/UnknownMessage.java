@@ -177,19 +177,19 @@ public class UnknownMessage extends BaseModel {
 
         // TODO: Do we want to do a double hash (like Bitcoin) to avoid potential birthday collision attacks?
 
+        // Do we have enough zero bytes? First check the fully-zero bytes...
         for (int hashIndex = 0; hashIndex < zeroBytes; ++hashIndex) {
             if (hash[hashIndex] != 0) {
-                Log.e(TAG, "Message's hash does not have enough zero bits");
                 return false;
             }
         }
 
+        // ... then check the remaining zero bits in the last byte.
         int zeroBitsRemaining = zeroBits % 8;
         if (zeroBitsRemaining != 0) {
             byte lastZeroByte = hash[zeroBytes];
             byte mask = (byte) (0xFF << (8 - zeroBitsRemaining));
             if ((lastZeroByte & mask) != 0) {
-                Log.e(TAG, "Message's hash does not have enough zero bits");
                 return false;
             }
         }
@@ -198,14 +198,20 @@ public class UnknownMessage extends BaseModel {
     }
 
     private void sign() {
-        // It takes about a second or two to find the right count, so this shouldn't happen on the UI thread.
+        // Signing will use 100% of one core for a few seconds. Don't do it on the UI thread.
         if (Looper.getMainLooper().getThread() == Thread.currentThread())
             Log.e(TAG, "Attempting to sign on the UI thread");
 
+        Log.d(TAG, "Signing started");
+
+        long started = System.nanoTime();
         for (counter = 0; counter < Integer.MAX_VALUE; ++counter) {
             if (isValid())
-                return;
+                break;
         }
+        long finished = System.nanoTime();
+
+        Log.d(TAG, "Signing took " + (finished - started) / 1000 + " ms");
     }
 
     // Raw encrypted data, used only for debugging purposes
