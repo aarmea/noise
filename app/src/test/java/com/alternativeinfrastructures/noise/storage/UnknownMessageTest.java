@@ -1,12 +1,15 @@
 package com.alternativeinfrastructures.noise.storage;
 
 import com.alternativeinfrastructures.noise.BuildConfig;
+import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -27,8 +30,17 @@ public class UnknownMessageTest {
             fail(e.toString());
         }
 
-        // TODO: Make sure message exists
-        // TODO: Make sure message is signed properly
-        // TODO: Validate contents of the message
+        List<UnknownMessage> messages = SQLite.select().from(UnknownMessage.class).queryList();
+        assertEquals(messages.size(), 1);
+
+        UnknownMessage message = messages.get(0);
+        assertTrue(message.isValid());
+        assertNotNull(message.payload);
+
+        byte[] messagePayload = message.payload.getBlob();
+        assertEquals(messagePayload.length, UnknownMessage.PAYLOAD_SIZE);
+
+        for (int i = 0; i < payload.length; ++i)
+            assertEquals(payload[i], messagePayload[i]);
     }
 }

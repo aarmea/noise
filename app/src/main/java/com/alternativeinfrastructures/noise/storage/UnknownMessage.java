@@ -35,7 +35,7 @@ public class UnknownMessage extends BaseModel {
     private static final String HASH_ALGORITHM = "SHA-256";
 
     // TODO: Tune the size to something more appropriate
-    private static final int PAYLOAD_SIZE = 240;
+    protected static final int PAYLOAD_SIZE = 240;
 
     @Column
     protected byte version;
