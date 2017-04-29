@@ -58,7 +58,7 @@ public class UnknownMessage extends BaseModel {
 
     public static class PayloadTooLargeException extends Exception {}
 
-    public static void createAndSignAsync(byte[] payload) throws PayloadTooLargeException {
+    public static Transaction createAndSignAsync(byte[] payload) throws PayloadTooLargeException {
         if (payload.length < PAYLOAD_SIZE) {
             byte[] paddedPayload = new byte[PAYLOAD_SIZE];
             new SecureRandom().nextBytes(paddedPayload);
@@ -79,7 +79,7 @@ public class UnknownMessage extends BaseModel {
 
         final UnknownMessage messageToSave = message;
 
-        FlowManager.getDatabase(MessageDatabase.class).beginTransactionAsync(new ITransaction() {
+        Transaction transaction = FlowManager.getDatabase(MessageDatabase.class).beginTransactionAsync(new ITransaction() {
             @Override
             public void execute(DatabaseWrapper databaseWrapper) {
                 // TODO: Configure DBFlow to allow multiple threads with a custom TransactionManager so signing doesn't block sync:
@@ -97,10 +97,12 @@ public class UnknownMessage extends BaseModel {
             public void onError(Transaction transaction, Throwable error) {
                 Log.e(TAG, "Error saving a message", error);
             }
-        }).build().execute();
+        }).build();
+        transaction.execute();
+        return transaction;
     }
 
-    public static void createFromSourceAsync(BufferedSource source) throws IOException {
+    public static Transaction createFromSourceAsync(BufferedSource source) throws IOException {
         UnknownMessage message = new UnknownMessage();
         message.version = source.readByte();
         message.zeroBits = source.readByte();
@@ -113,7 +115,7 @@ public class UnknownMessage extends BaseModel {
 
         final UnknownMessage messageToSave = message;
 
-        FlowManager.getDatabase(MessageDatabase.class).beginTransactionAsync(new ITransaction() {
+        Transaction transaction = FlowManager.getDatabase(MessageDatabase.class).beginTransactionAsync(new ITransaction() {
             @Override
             public void execute(DatabaseWrapper databaseWrapper) {
                 messageToSave.save(databaseWrapper);
@@ -128,7 +130,9 @@ public class UnknownMessage extends BaseModel {
             public void onError(Transaction transaction, Throwable error) {
                 Log.e(TAG, "Error saving a message", error);
             }
-        }).build().execute();
+        }).build();
+        transaction.execute();
+        return transaction;
     }
 
     public void writeToSink(BufferedSink sink) throws IOException {
@@ -216,6 +220,9 @@ public class UnknownMessage extends BaseModel {
 
     // Raw encrypted data, used only for debugging purposes
     public String toString() {
-        return Base64.encodeToString(this.payload.getBlob(), Base64.NO_WRAP);
+        if (this.payload != null)
+            return Base64.encodeToString(this.payload.getBlob(), Base64.NO_WRAP);
+        else
+            return "";
     }
 }
