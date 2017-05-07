@@ -146,6 +146,16 @@ public class UnknownMessage extends BaseModel {
         sink.writeInt(counter);
     }
 
+    public byte[] writeToByteArray() throws IOException {
+        // TODO: Add a way to calculate what the actual expected size is instead of using this guess
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream(PAYLOAD_SIZE * 2);
+        BufferedSink byteSink = Okio.buffer(Okio.sink(byteStream));
+        writeToSink(byteSink);
+        byteSink.flush();
+
+        return byteStream.toByteArray();
+    }
+
     public boolean isValid() {
         // TODO: Validate the other fields first before calculating and checking the hash
         // (i.e. if the message is expired or we don't support the message version, return false now)
@@ -159,18 +169,14 @@ public class UnknownMessage extends BaseModel {
             return false;
         }
 
-        // TODO: Add a way to calculate what the actual expected size is instead of using this guess
-        ByteArrayOutputStream byteStream = new ByteArrayOutputStream(PAYLOAD_SIZE * 2);
-        BufferedSink byteSink = Okio.buffer(Okio.sink(byteStream));
+        byte[] message;
         try {
-            writeToSink(byteSink);
-            byteSink.flush();
+            message = writeToByteArray();
         } catch (IOException e) {
             Log.e(TAG, "Couldn't serialize while validating", e);
             return false;
         }
 
-        byte[] message = byteStream.toByteArray();
         byte[] hash = digest.digest(message);
 
         int zeroBytes = zeroBits / 8;
