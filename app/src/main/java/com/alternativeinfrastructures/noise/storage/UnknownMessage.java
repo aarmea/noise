@@ -30,8 +30,6 @@ public class UnknownMessage extends BaseModel {
     public static final String TAG = "UnknownMessage";
     // TODO: Design and implement database syncing across devices
 
-    // TODO: Write unit tests for this class
-
     private static final String HASH_ALGORITHM = "SHA-256";
 
     // TODO: Tune the size to something more appropriate
