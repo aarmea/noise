@@ -75,29 +75,7 @@ public class UnknownMessage extends BaseModel {
         message.date = new Date();
         message.payload = new Blob(payload);
 
-        final UnknownMessage messageToSave = message;
-
-        Transaction transaction = FlowManager.getDatabase(MessageDatabase.class).beginTransactionAsync(new ITransaction() {
-            @Override
-            public void execute(DatabaseWrapper databaseWrapper) {
-                // TODO: Configure DBFlow to allow multiple threads with a custom TransactionManager so signing doesn't block sync:
-                // https://github.com/Raizlabs/DBFlow/blob/master/usage2/StoringData.md#transactions
-                messageToSave.sign();
-                messageToSave.save(databaseWrapper);
-            }
-        }).success(new Transaction.Success() {
-            @Override
-            public void onSuccess(Transaction transaction) {
-                Log.d(TAG, "Signed and saved a new message");
-            }
-        }).error(new Transaction.Error() {
-            @Override
-            public void onError(Transaction transaction, Throwable error) {
-                Log.e(TAG, "Error saving a message", error);
-            }
-        }).build();
-        transaction.execute();
-        return transaction;
+        return message.saveAsync(true /*shouldSign*/);
     }
 
     public static Transaction createFromSourceAsync(BufferedSource source) throws IOException {
@@ -111,26 +89,7 @@ public class UnknownMessage extends BaseModel {
         if (!message.isValid())
             throw new IOException("Received an invalid message");
 
-        final UnknownMessage messageToSave = message;
-
-        Transaction transaction = FlowManager.getDatabase(MessageDatabase.class).beginTransactionAsync(new ITransaction() {
-            @Override
-            public void execute(DatabaseWrapper databaseWrapper) {
-                messageToSave.save(databaseWrapper);
-            }
-        }).success(new Transaction.Success() {
-            @Override
-            public void onSuccess(Transaction transaction) {
-                Log.d(TAG, "Saved a message from a stream");
-            }
-        }).error(new Transaction.Error() {
-            @Override
-            public void onError(Transaction transaction, Throwable error) {
-                Log.e(TAG, "Error saving a message", error);
-            }
-        }).build();
-        transaction.execute();
-        return transaction;
+        return message.saveAsync(false /*shouldSign*/);
     }
 
     public void writeToSink(BufferedSink sink) throws IOException {
@@ -203,6 +162,33 @@ public class UnknownMessage extends BaseModel {
         }
 
         return true;
+    }
+
+    private Transaction saveAsync(final boolean shouldSign) {
+        final UnknownMessage messageToSave = this;
+        Transaction transaction = FlowManager.getDatabase(MessageDatabase.class).beginTransactionAsync(new ITransaction() {
+            @Override
+            public void execute(DatabaseWrapper databaseWrapper) {
+                // TODO: Sign outside of a transaction so we don't block sync
+                // Signing happens here as a hack so we don't sign on the UI thread
+                if (shouldSign)
+                    messageToSave.sign();
+
+                messageToSave.save(databaseWrapper);
+            }
+        }).success(new Transaction.Success() {
+            @Override
+            public void onSuccess(Transaction transaction) {
+                Log.d(TAG, "Saved a message");
+            }
+        }).error(new Transaction.Error() {
+            @Override
+            public void onError(Transaction transaction, Throwable error) {
+                Log.e(TAG, "Error saving a message", error);
+            }
+        }).build();
+        transaction.execute();
+        return transaction;
     }
 
     private void sign() {
