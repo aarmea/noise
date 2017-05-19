@@ -21,7 +21,8 @@ import static org.junit.Assert.*;
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class)
 public class UnknownMessageTest {
-    public static final int TRANSACTION_MAX_TIME_MS = 10000;
+    static final int TRANSACTION_MAX_TIME_MS = 1000;
+    static final byte TEST_ZERO_BITS = 10;
 
     @After
     public void teardown() {
@@ -62,7 +63,7 @@ public class UnknownMessageTest {
     }
 
     private UnknownMessage createAndSignOneMessage(byte[] payload) throws Exception {
-        Transaction transaction = UnknownMessage.createAndSignAsync(payload);
+        Transaction transaction = UnknownMessage.createAndSignAsync(payload, TEST_ZERO_BITS);
         synchronized(transaction) {
             transaction.wait(TRANSACTION_MAX_TIME_MS);
         }

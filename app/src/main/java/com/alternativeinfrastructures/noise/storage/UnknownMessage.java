@@ -56,7 +56,7 @@ public class UnknownMessage extends BaseModel {
 
     public static class PayloadTooLargeException extends Exception {}
 
-    public static Transaction createAndSignAsync(byte[] payload) throws PayloadTooLargeException {
+    public static Transaction createAndSignAsync(byte[] payload, byte zeroBits) throws PayloadTooLargeException {
         if (payload.length < PAYLOAD_SIZE) {
             byte[] paddedPayload = new byte[PAYLOAD_SIZE];
             new SecureRandom().nextBytes(paddedPayload);
@@ -68,9 +68,8 @@ public class UnknownMessage extends BaseModel {
 
         UnknownMessage message = new UnknownMessage();
         message.version = 1;
-        // TODO: This is hashcash's default. How many bits do we actually want?
-        // hashcash uses SHA-1 (which is cryptographically insecure), but we use SHA-256, so we definitely want to tune this
-        message.zeroBits = 20;
+        message.zeroBits = zeroBits;
+        // TODO: Derive an expiration from the number of zero bits
         // Expiration should be derived from number of zero bits - the more declared zero digits in the generated hash, the further out the expiration
         message.date = new Date();
         message.payload = new Blob(payload);

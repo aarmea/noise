@@ -20,6 +20,8 @@ import com.alternativeinfrastructures.noise.storage.UnknownMessage_Table;
 public class RawMessageList extends AppCompatActivity {
     public static final String TAG = "RawMessageList";
 
+    private static final byte TEST_ZERO_BITS = 10;
+
     private FlowQueryList<UnknownMessage> messages;
     private ArrayAdapter<UnknownMessage> adapter;
 
@@ -54,7 +56,7 @@ public class RawMessageList extends AppCompatActivity {
             public void onClick(View view) {
                 try {
                     byte[] payload = "This is an unencrypted test message".getBytes();
-                    UnknownMessage.createAndSignAsync(payload);
+                    UnknownMessage.createAndSignAsync(payload, TEST_ZERO_BITS);
                 } catch (UnknownMessage.PayloadTooLargeException e) {
                     Log.e(TAG, "Message not created", e);
                 }
