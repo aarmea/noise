@@ -33,7 +33,10 @@ public class UnknownMessage extends BaseModel {
     private static final String HASH_ALGORITHM = "SHA-256";
 
     // TODO: Tune the size to something more appropriate
-    protected static final int PAYLOAD_SIZE = 240;
+    public static final int PAYLOAD_SIZE = 240;
+
+    @PrimaryKey(autoincrement = true)
+    protected long id;
 
     @Column
     protected byte version;
@@ -44,13 +47,11 @@ public class UnknownMessage extends BaseModel {
     @Column
     protected Date date;
 
-    @PrimaryKey
+    @Column
     protected Blob payload;
 
     @Column
     protected int counter;
-
-    // TODO: Implement a way to get a (Bloom filter?) bit string that describes the entire contents of this table (ideally directly in SQLite/DBFlow)
 
     protected UnknownMessage() {}
 
@@ -163,7 +164,7 @@ public class UnknownMessage extends BaseModel {
         return true;
     }
 
-    private Transaction saveAsync(final boolean shouldSign) {
+    public Transaction saveAsync(final boolean shouldSign) {
         final UnknownMessage messageToSave = this;
         Transaction transaction = FlowManager.getDatabase(MessageDatabase.class).beginTransactionAsync(new ITransaction() {
             @Override
@@ -174,6 +175,7 @@ public class UnknownMessage extends BaseModel {
                     messageToSave.sign();
 
                 messageToSave.save(databaseWrapper);
+                BloomFilter.addMessage(messageToSave);
             }
         }).success(new Transaction.Success() {
             @Override

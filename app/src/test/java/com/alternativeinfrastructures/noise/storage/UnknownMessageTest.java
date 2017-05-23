@@ -12,6 +12,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.ByteArrayInputStream;
+import java.util.BitSet;
 import java.util.List;
 
 import okio.Okio;
@@ -37,6 +38,7 @@ public class UnknownMessageTest {
         UnknownMessage message = createAndSignOneMessage(payload);
         assertTrue(message.isValid());
         assertPayloadContents(message, payload);
+        assertVectorContainsMessage(message, BloomFilter.getMessageVector());
     }
 
     @Test
@@ -47,6 +49,7 @@ public class UnknownMessageTest {
 
         message.delete();
         assertEquals(SQLite.select().from(UnknownMessage.class).count(), 0);
+        assertEquals(SQLite.select().from(BloomFilter.class).count(), 0);
 
         ByteArrayInputStream messageStream = new ByteArrayInputStream(savedMessage);
         Transaction transaction = UnknownMessage.createFromSourceAsync(Okio.buffer(Okio.source(messageStream)));
@@ -60,6 +63,7 @@ public class UnknownMessageTest {
         assertTrue(reloadedMessage.isValid());
 
         assertPayloadContents(reloadedMessage, payload);
+        assertVectorContainsMessage(reloadedMessage, BloomFilter.getMessageVector());
     }
 
     private UnknownMessage createAndSignOneMessage(byte[] payload) throws Exception {
@@ -82,5 +86,10 @@ public class UnknownMessageTest {
 
         for (int i = 0; i < payload.length; ++i)
             assertEquals(payload[i], messagePayload[i]);
+    }
+
+    private void assertVectorContainsMessage(UnknownMessage message, BitSet messageVector) {
+        for (int hash : BloomFilter.hashMessage(message))
+            assertTrue(messageVector.get(hash));
     }
 }
