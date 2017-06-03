@@ -274,7 +274,7 @@ public class BluetoothSyncService extends Service {
                     Log.d(TAG, "Bluetooth Classic server is listening for a client");
                     socket = serverSocket.accept();
 
-                    StreamSync.bidirectionalSync(StreamSync.Role.SERVER, socket.getInputStream(), socket.getOutputStream());
+                    StreamSync.bidirectionalSync(socket.getInputStream(), socket.getOutputStream());
                     socket.close();
                 } catch (IOException connectException) {
                     Log.e(TAG, "Failed to start a Bluetooth Classic connection as a server", connectException);
@@ -307,7 +307,7 @@ public class BluetoothSyncService extends Service {
                 Log.d(TAG, "Bluetooth Classic client is attempting to connect to a server");
                 socket.connect();
 
-                StreamSync.bidirectionalSync(StreamSync.Role.CLIENT, socket.getInputStream(), socket.getOutputStream());
+                StreamSync.bidirectionalSync(socket.getInputStream(), socket.getOutputStream());
                 socket.close();
             } catch (IOException connectException) {
                 Log.e(TAG, "Failed to start a Bluetooth Classic connection as a client", connectException);

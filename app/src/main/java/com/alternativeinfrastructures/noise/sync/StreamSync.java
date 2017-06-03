@@ -6,6 +6,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import okio.BufferedSink;
 import okio.BufferedSource;
@@ -14,34 +18,38 @@ import okio.Okio;
 public class StreamSync {
     public static final String TAG = "StreamSync";
 
-    public enum Role {
-        CLIENT,
-        SERVER
-    }
+    public static void bidirectionalSync(InputStream inputStream, OutputStream outputStream) {
+        Log.d(TAG, "Starting sync");
 
-    public static void bidirectionalSync(Role role, InputStream inputStream, OutputStream outputStream) {
-        BufferedSource source = Okio.buffer(Okio.source(inputStream));
-        BufferedSink sink = Okio.buffer(Okio.sink(outputStream));
+        final BufferedSource source = Okio.buffer(Okio.source(inputStream));
+        final BufferedSink sink = Okio.buffer(Okio.sink(outputStream));
+        ExecutorService ioExecutors = Executors.newFixedThreadPool(2); // Separate threads for send and receive
+
+        handshakeAsync(source, sink, ioExecutors);
 
         try {
-            handshake(role, source, sink);
-        } catch (IOException ioException) {
-            Log.e(TAG, "IOException during handshake", ioException);
+            ioExecutors.wait();
+        } catch (Exception e) {
+            Log.e(TAG, "Handshake failed", e);
             return;
         }
 
-        Log.d(TAG, "Connected to a " + (role == Role.CLIENT ? "server" : "client"));
+        Log.d(TAG, "Connected to a peer");
+
 
         // TODO: Exchange bit fields (and maybe validate that it matches the one in the broadcast?)
         // TODO: Send and receive individual messages (in separate threads so we can send and receive simultaneously)
+        // TODO: Write tests for this class/function
+        ioExecutors.shutdown();
     }
 
     private static final String PROTOCOL_NAME = "Noise0";
     private static final Charset DEFAULT_CHARSET = Charset.forName("US-ASCII");
 
     private enum Messages {
-        SERVER_READY((byte) 1),
-        CLIENT_READY((byte) 2);
+        MESSAGE_VECTOR((byte) 1),
+        MESSAGE((byte) 2),
+        END((byte) 3);
 
         private byte value;
 
@@ -54,36 +62,29 @@ public class StreamSync {
         }
     }
 
-    private static void handshake(Role role, BufferedSource source, BufferedSink sink) throws IOException {
+    static void handshakeAsync(final BufferedSource source, final BufferedSink sink, ExecutorService ioExecutors) {
         if (PROTOCOL_NAME.length() > Byte.MAX_VALUE)
             Log.wtf(TAG, "Protocol name is too long");
 
-        if (role == Role.SERVER) {
-            sink.writeByte(PROTOCOL_NAME.length());
-            sink.writeString(PROTOCOL_NAME, DEFAULT_CHARSET);
+        ioExecutors.submit(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                sink.writeByte(PROTOCOL_NAME.length());
+                sink.writeString(PROTOCOL_NAME, DEFAULT_CHARSET);
+                sink.flush();
+                return null;
+            }
+        });
 
-            sink.writeByte(Messages.SERVER_READY.getValue());
-            sink.flush();
-        }
-
-        if (role == Role.CLIENT) {
-            byte protocolNameLength = source.readByte();
-            String protocolName = source.readString(protocolNameLength, DEFAULT_CHARSET);
-            if (!protocolName.equals(PROTOCOL_NAME))
-                throw new IOException("Protocol \"" + protocolName + "\" not supported");
-
-            byte message = source.readByte();
-            if (message != Messages.SERVER_READY.getValue())
-                throw new IOException("Client expected SERVER_READY but received " + message);
-
-            sink.writeByte(Messages.CLIENT_READY.getValue());
-            sink.flush();
-        }
-
-        if (role == Role.SERVER) {
-            byte message = source.readByte();
-            if (message != Messages.CLIENT_READY.getValue())
-                throw new IOException("Server expected CLIENT_READY but received " + message);
-        }
+        ioExecutors.submit(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                byte protocolNameLength = source.readByte();
+                String protocolName = source.readString(protocolNameLength, DEFAULT_CHARSET);
+                if (!protocolName.equals(PROTOCOL_NAME))
+                    throw new IOException("Protocol \"" + protocolName + "\"not supported");
+                return protocolName;
+            }
+        });
     }
 }
