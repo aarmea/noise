@@ -12,11 +12,16 @@ import org.robolectric.annotation.Config;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import okio.Buffer;
+import okio.BufferedSink;
+import okio.BufferedSource;
+import okio.Okio;
+import okio.Pipe;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class)
 public class StreamSyncTest {
+    static final long PIPE_SIZE = 1024;
+
     @After
     public void teardown() {
         // DBFlow doesn't automatically close its database handle when a test ends.
@@ -26,17 +31,23 @@ public class StreamSyncTest {
 
     @Test
     public void handshake() throws Exception {
-        ExecutorService firstInstanceThreads = Executors.newFixedThreadPool(2);
-        ExecutorService secondInstanceThreads = Executors.newFixedThreadPool(2);
+        ExecutorService executors = Executors.newFixedThreadPool(4);
 
-        Buffer firstToSecondBuffer = new Buffer();
-        Buffer secondToFirstBuffer = new Buffer();
+        Pipe firstToSecond = new Pipe(PIPE_SIZE);
+        Pipe secondToFirst = new Pipe(PIPE_SIZE);
 
-        StreamSync.handshakeAsync(firstToSecondBuffer, secondToFirstBuffer, firstInstanceThreads);
-        StreamSync.handshakeAsync(secondToFirstBuffer, firstToSecondBuffer, secondInstanceThreads);
+        BufferedSource firstSource = Okio.buffer(secondToFirst.source());
+        BufferedSink firstSink = Okio.buffer(firstToSecond.sink());
+        BufferedSource secondSource = Okio.buffer(firstToSecond.source());
+        BufferedSink secondSink = Okio.buffer(secondToFirst.sink());
 
-        firstInstanceThreads.shutdown();
-        secondInstanceThreads.shutdown();
+        StreamSync.IOFutures<String> firstFutures = StreamSync.handshakeAsync(firstSource, firstSink, executors);
+        StreamSync.IOFutures<String> secondFutures = StreamSync.handshakeAsync(secondSource, secondSink, executors);
+
+        firstFutures.get();
+        secondFutures.get();
+
+        executors.shutdown();
 
         // TODO: Test failure conditions
     }

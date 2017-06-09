@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -25,10 +26,10 @@ public class StreamSync {
         final BufferedSink sink = Okio.buffer(Okio.sink(outputStream));
         ExecutorService ioExecutors = Executors.newFixedThreadPool(2); // Separate threads for send and receive
 
-        handshakeAsync(source, sink, ioExecutors);
+        IOFutures handshakeFuture = handshakeAsync(source, sink, ioExecutors);
 
         try {
-            ioExecutors.wait();
+            handshakeFuture.get();
         } catch (Exception e) {
             Log.e(TAG, "Handshake failed", e);
             return;
@@ -62,11 +63,28 @@ public class StreamSync {
         }
     }
 
-    static void handshakeAsync(final BufferedSource source, final BufferedSink sink, ExecutorService ioExecutors) {
+    static class IOFutures<T> {
+        public Future<Void> sender;
+        public Future<T> receiver;
+
+        public T get() throws InterruptedException, ExecutionException {
+            if (sender != null)
+                sender.get();
+
+            if (receiver != null)
+                return receiver.get();
+            else
+                return null;
+        }
+    }
+
+    static IOFutures<String> handshakeAsync(final BufferedSource source, final BufferedSink sink, ExecutorService ioExecutors) {
         if (PROTOCOL_NAME.length() > Byte.MAX_VALUE)
             Log.wtf(TAG, "Protocol name is too long");
 
-        ioExecutors.submit(new Callable<Void>() {
+        IOFutures<String> futures = new IOFutures<String>();
+
+        futures.sender = ioExecutors.submit(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
                 sink.writeByte(PROTOCOL_NAME.length());
@@ -76,15 +94,17 @@ public class StreamSync {
             }
         });
 
-        ioExecutors.submit(new Callable<String>() {
+        futures.receiver = ioExecutors.submit(new Callable<String>() {
             @Override
             public String call() throws Exception {
                 byte protocolNameLength = source.readByte();
                 String protocolName = source.readString(protocolNameLength, DEFAULT_CHARSET);
                 if (!protocolName.equals(PROTOCOL_NAME))
-                    throw new IOException("Protocol \"" + protocolName + "\"not supported");
+                    throw new IOException("Protocol \"" + protocolName + "\" not supported");
                 return protocolName;
             }
         });
+
+        return futures;
     }
 }
