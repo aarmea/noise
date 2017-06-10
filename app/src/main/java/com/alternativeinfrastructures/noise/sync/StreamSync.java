@@ -26,10 +26,10 @@ public class StreamSync {
         final BufferedSink sink = Okio.buffer(Okio.sink(outputStream));
         ExecutorService ioExecutors = Executors.newFixedThreadPool(2); // Separate threads for send and receive
 
-        IOFutures handshakeFuture = handshakeAsync(source, sink, ioExecutors);
+        IOFutures<String> handshakeFutures = handshakeAsync(source, sink, ioExecutors);
 
         try {
-            handshakeFuture.get();
+            handshakeFutures.get();
         } catch (Exception e) {
             Log.e(TAG, "Handshake failed", e);
             return;
