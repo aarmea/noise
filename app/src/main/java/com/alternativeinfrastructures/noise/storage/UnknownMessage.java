@@ -56,6 +56,7 @@ public class UnknownMessage extends BaseModel {
     protected UnknownMessage() {}
 
     public static class PayloadTooLargeException extends Exception {}
+    public static class InvalidMessageException extends Exception {}
 
     public static Transaction createAndSignAsync(byte[] payload, byte zeroBits) throws PayloadTooLargeException {
         if (payload.length < PAYLOAD_SIZE) {
@@ -78,7 +79,7 @@ public class UnknownMessage extends BaseModel {
         return message.saveAsync(true /*shouldSign*/);
     }
 
-    public static Transaction createFromSourceAsync(BufferedSource source) throws IOException {
+    public static Transaction createFromSourceAsync(BufferedSource source) throws IOException, InvalidMessageException {
         UnknownMessage message = new UnknownMessage();
         message.version = source.readByte();
         message.zeroBits = source.readByte();
@@ -86,8 +87,9 @@ public class UnknownMessage extends BaseModel {
         message.payload = new Blob(source.readByteArray(PAYLOAD_SIZE));
         message.counter = source.readInt();
 
+        // TODO: Include the reason *why* the message is invalid in the exception
         if (!message.isValid())
-            throw new IOException("Received an invalid message");
+            throw new InvalidMessageException();
 
         return message.saveAsync(false /*shouldSign*/);
     }
@@ -119,6 +121,7 @@ public class UnknownMessage extends BaseModel {
         // TODO: Say *why* the message is invalid (probably by returning an enum instead of a boolean)
         MessageDigest digest;
 
+        // TODO: This can be cleaner with okio.HashingSink
         try {
             digest = MessageDigest.getInstance(HASH_ALGORITHM);
         } catch (NoSuchAlgorithmException e) {
@@ -194,6 +197,7 @@ public class UnknownMessage extends BaseModel {
 
     private void sign() {
         // Signing will use 100% of one core for a few seconds. Don't do it on the UI thread.
+        // TODO: Sign on multiple threads
         if (Looper.getMainLooper().getThread() == Thread.currentThread())
             Log.e(TAG, "Attempting to sign on the UI thread");
 
