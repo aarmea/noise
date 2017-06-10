@@ -66,6 +66,8 @@ public class UnknownMessageTest {
         assertVectorContainsMessage(reloadedMessage, BloomFilter.getMessageVector());
     }
 
+    // TODO: Test invalid messages
+
     private UnknownMessage createAndSignOneMessage(byte[] payload) throws Exception {
         Transaction transaction = UnknownMessage.createAndSignAsync(payload, TEST_ZERO_BITS);
         synchronized(transaction) {
@@ -89,6 +91,7 @@ public class UnknownMessageTest {
     }
 
     private void assertVectorContainsMessage(UnknownMessage message, BitSet messageVector) {
+        assertEquals(messageVector.toByteArray().length, BloomFilter.SIZE_IN_BYTES);
         for (int hash : BloomFilter.hashMessage(message))
             assertTrue(messageVector.get(hash));
     }

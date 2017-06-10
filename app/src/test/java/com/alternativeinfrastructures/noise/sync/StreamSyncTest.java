@@ -1,29 +1,64 @@
 package com.alternativeinfrastructures.noise.sync;
 
 import com.alternativeinfrastructures.noise.BuildConfig;
+import com.alternativeinfrastructures.noise.storage.BloomFilter;
 import com.raizlabs.android.dbflow.config.FlowManager;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.util.BitSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import okio.BufferedSink;
 import okio.BufferedSource;
 import okio.Okio;
 import okio.Pipe;
 
+import static org.junit.Assert.*;
+
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class)
 public class StreamSyncTest {
     static final long PIPE_SIZE = 1024;
+    static final int TIMEOUT_VALUE = 10;
+    static final TimeUnit TIMEOUT_UNIT = TimeUnit.SECONDS;
+
+    private ExecutorService executors;
+    private Pipe firstToSecond, secondToFirst;
+    private BufferedSource firstSource, secondSource;
+    private BufferedSink firstSink, secondSink;
+
+    @Before
+    public void setup() {
+        executors = Executors.newFixedThreadPool(4);
+
+        firstToSecond = new Pipe(PIPE_SIZE);
+        secondToFirst = new Pipe(PIPE_SIZE);
+
+        firstSource = Okio.buffer(secondToFirst.source());
+        firstSource.timeout().timeout(TIMEOUT_VALUE, TIMEOUT_UNIT);
+
+        firstSink = Okio.buffer(firstToSecond.sink());
+        firstSink.timeout().timeout(TIMEOUT_VALUE, TIMEOUT_UNIT);
+
+        secondSource = Okio.buffer(firstToSecond.source());
+        secondSource.timeout().timeout(TIMEOUT_VALUE, TIMEOUT_UNIT);
+
+        secondSink = Okio.buffer(secondToFirst.sink());
+        secondSink.timeout().timeout(TIMEOUT_VALUE, TIMEOUT_UNIT);
+    }
 
     @After
     public void teardown() {
+        executors.shutdown();
+
         // DBFlow doesn't automatically close its database handle when a test ends.
         // https://github.com/robolectric/robolectric/issues/1890#issuecomment-218880541
         FlowManager.destroy();
@@ -31,28 +66,50 @@ public class StreamSyncTest {
 
     @Test
     public void handshake() throws Exception {
-        ExecutorService executors = Executors.newFixedThreadPool(4);
-
-        Pipe firstToSecond = new Pipe(PIPE_SIZE);
-        Pipe secondToFirst = new Pipe(PIPE_SIZE);
-
-        BufferedSource firstSource = Okio.buffer(secondToFirst.source());
-        BufferedSink firstSink = Okio.buffer(firstToSecond.sink());
-        BufferedSource secondSource = Okio.buffer(firstToSecond.source());
-        BufferedSink secondSink = Okio.buffer(secondToFirst.sink());
-
-        StreamSync.IOFutures<String> firstFutures = StreamSync.handshakeAsync(firstSource, firstSink, executors);
-        StreamSync.IOFutures<String> secondFutures = StreamSync.handshakeAsync(secondSource, secondSink, executors);
+        StreamSync.IOFutures<String> firstFutures = StreamSync.handshakeAsync(
+                firstSource, firstSink, executors);
+        StreamSync.IOFutures<String> secondFutures = StreamSync.handshakeAsync(
+                secondSource, secondSink, executors);
 
         firstFutures.get();
         secondFutures.get();
 
-        executors.shutdown();
+        // TODO: Test failure conditions
+    }
+
+    @Test
+    public void exchangeMessageVectors() throws Exception {
+        BitSet firstMessageVector = BloomFilter.makeEmptyMessageVector();
+        BitSet secondMessageVector = BloomFilter.makeEmptyMessageVector();
+
+        // Arbitrary bits within BloomFilter.SIZE that we'll check for later
+        firstMessageVector.set(193);
+        firstMessageVector.set(719418);
+        firstMessageVector.set(1048574);
+        secondMessageVector.set(378);
+        secondMessageVector.set(87130);
+        secondMessageVector.set(183619);
+
+        assertEquals(firstMessageVector.length(), BloomFilter.makeEmptyMessageVector().length());
+        assertEquals(firstMessageVector.length(), secondMessageVector.length());
+
+        StreamSync.IOFutures<BitSet> firstFutures = StreamSync.exchangeMessageVectorsAsync(
+                firstMessageVector, firstSource, firstSink, executors);
+        StreamSync.IOFutures<BitSet> secondFutures = StreamSync.exchangeMessageVectorsAsync(
+                secondMessageVector, secondSource, secondSink, executors);
+
+        BitSet firstMessageVectorAfterExchange = secondFutures.get();
+        BitSet secondMessageVectorAfterExchange = firstFutures.get();
+
+        assertEquals(firstMessageVector.length(), firstMessageVectorAfterExchange.length());
+        assertEquals(firstMessageVector, firstMessageVectorAfterExchange);
+
+        assertEquals(secondMessageVector.length(), secondMessageVectorAfterExchange.length());
+        assertEquals(secondMessageVector, secondMessageVectorAfterExchange);
 
         // TODO: Test failure conditions
     }
 
-    // TODO: Message vector exchange test
     // TODO: Message send test
     // TODO: Message receive test
 }
