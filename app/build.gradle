@@ -40,7 +40,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support:design:25.3.1'
     testCompile 'junit:junit:4.12'
-    testCompile 'org.robolectric:robolectric:3.3'
+    testCompile 'org.robolectric:robolectric:3.3.2'
 
     compile group: 'net.vidageek', name: 'mirror', version: '1.6.1'
 
