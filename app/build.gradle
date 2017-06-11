@@ -6,7 +6,7 @@ def dbflow_version = "4.0.3"
 android {
     compileSdkVersion 25
     // Make sure to also update build-tools-* in .travis.yml
-    buildToolsVersion "25.0.3"
+    buildToolsVersion "26.0.0"
     defaultConfig {
         applicationId "com.alternativeinfrastructures.noise"
         minSdkVersion 21
