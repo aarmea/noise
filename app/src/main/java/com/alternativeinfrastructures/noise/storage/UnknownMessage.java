@@ -1,6 +1,7 @@
 package com.alternativeinfrastructures.noise.storage;
 
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
 
@@ -9,7 +10,7 @@ import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
 import com.raizlabs.android.dbflow.config.FlowManager;
 import com.raizlabs.android.dbflow.data.Blob;
-import com.raizlabs.android.dbflow.structure.BaseModel;
+import com.raizlabs.android.dbflow.rx2.structure.BaseRXModel;
 import com.raizlabs.android.dbflow.structure.database.DatabaseWrapper;
 import com.raizlabs.android.dbflow.structure.database.transaction.ITransaction;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
@@ -20,13 +21,17 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Date;
+import java.util.concurrent.Callable;
 
+import io.reactivex.Single;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 import okio.BufferedSink;
 import okio.BufferedSource;
 import okio.Okio;
 
 @Table(database = MessageDatabase.class)
-public class UnknownMessage extends BaseModel {
+public class UnknownMessage extends BaseRXModel {
     public static final String TAG = "UnknownMessage";
     // TODO: Design and implement database syncing across devices
 
@@ -58,7 +63,7 @@ public class UnknownMessage extends BaseModel {
     public static class PayloadTooLargeException extends Exception {}
     public static class InvalidMessageException extends Exception {}
 
-    public static Transaction createAndSignAsync(byte[] payload, byte zeroBits) throws PayloadTooLargeException {
+    public static Single<UnknownMessage> createAndSignAsync(byte[] payload, byte zeroBits) throws PayloadTooLargeException {
         if (payload.length < PAYLOAD_SIZE) {
             byte[] paddedPayload = new byte[PAYLOAD_SIZE];
             new SecureRandom().nextBytes(paddedPayload);
@@ -76,10 +81,21 @@ public class UnknownMessage extends BaseModel {
         message.date = new Date();
         message.payload = new Blob(payload);
 
-        return message.saveAsync(true /*shouldSign*/);
+        // TODO: Once we have Java 8 support, replace this with a method reference for clarity
+        return message.signAsync().flatMap(new Function<UnknownMessage, Single<UnknownMessage>>() {
+            @Override
+            public Single<UnknownMessage> apply(UnknownMessage message) {
+                return message.saveAsync();
+            }
+        });
     }
 
-    public static Transaction createFromSourceAsync(BufferedSource source) throws IOException, InvalidMessageException {
+    public static Single<UnknownMessage> createFromSourceAsync(BufferedSource source) throws IOException, InvalidMessageException {
+        // TODO: This I/O shouldn't happen directly on this thread!
+        // But it's probably okay as long as it's called from a networking thread
+        if (Looper.getMainLooper().getThread() == Thread.currentThread())
+            Log.e(TAG, "Attempting to read from a network on the UI thread");
+
         UnknownMessage message = new UnknownMessage();
         message.version = source.readByte();
         message.zeroBits = source.readByte();
@@ -91,7 +107,7 @@ public class UnknownMessage extends BaseModel {
         if (!message.isValid())
             throw new InvalidMessageException();
 
-        return message.saveAsync(false /*shouldSign*/);
+        return message.saveAsync();
     }
 
     public void writeToSink(BufferedSink sink) throws IOException {
@@ -167,37 +183,42 @@ public class UnknownMessage extends BaseModel {
         return true;
     }
 
-    public Transaction saveAsync(final boolean shouldSign) {
+    public Single<UnknownMessage> saveAsync() {
         final UnknownMessage messageToSave = this;
-        Transaction transaction = FlowManager.getDatabase(MessageDatabase.class).beginTransactionAsync(new ITransaction() {
+        return Single.fromCallable(new Callable<UnknownMessage>() {
             @Override
-            public void execute(DatabaseWrapper databaseWrapper) {
-                // TODO: Sign outside of a transaction so we don't block sync
-                // Signing happens here as a hack so we don't sign on the UI thread
-                if (shouldSign)
-                    messageToSave.sign();
+            public UnknownMessage call() throws Exception {
+                FlowManager.getDatabase(MessageDatabase.class).beginTransactionAsync(new ITransaction() {
+                    @Override
+                    public void execute(DatabaseWrapper databaseWrapper) {
+                        // blockingGet is okay here because this is ultimately wrapped in a Callable
+                        messageToSave.save(databaseWrapper).blockingGet();
 
-                messageToSave.save(databaseWrapper);
-                BloomFilter.addMessage(messageToSave);
+                        // TODO: Do this using a listener and then we won't need saveAsync anymore (message.insert() will implicitly manage the filter)
+                        // https://agrosner.gitbooks.io/dbflow/content/Observability.html
+                        BloomFilter.addMessage(messageToSave);
+                    }
+                }).success(new Transaction.Success() {
+                    @Override
+                    public void onSuccess(@NonNull Transaction transaction) {
+                        Log.d(TAG, "Saved a message");
+                    }
+                }).error(new Transaction.Error() {
+                    @Override
+                    public void onError(@NonNull Transaction transaction, @NonNull Throwable error) {
+                        Log.e(TAG, "Error saving a message", error);
+                    }
+                }).build().executeSync();
+                return messageToSave;
             }
-        }).success(new Transaction.Success() {
-            @Override
-            public void onSuccess(Transaction transaction) {
-                Log.d(TAG, "Saved a message");
-            }
-        }).error(new Transaction.Error() {
-            @Override
-            public void onError(Transaction transaction, Throwable error) {
-                Log.e(TAG, "Error saving a message", error);
-            }
-        }).build();
-        transaction.execute();
-        return transaction;
+        }).subscribeOn(Schedulers.io());
     }
 
-    private void sign() {
+    private UnknownMessage sign() {
         // Signing will use 100% of one core for a few seconds. Don't do it on the UI thread.
         // TODO: Sign on multiple threads
+        // TODO: Use a memory-intensive proof-of-work function to minimize the impact of bogus messages signed by ASICs (like Ethereum)
+        // http://www.ethdocs.org/en/latest/introduction/what-is-ethereum.html#how-does-ethereum-work
         if (Looper.getMainLooper().getThread() == Thread.currentThread())
             Log.e(TAG, "Attempting to sign on the UI thread");
 
@@ -211,6 +232,18 @@ public class UnknownMessage extends BaseModel {
         long finished = System.nanoTime();
 
         Log.d(TAG, "Signing took " + (finished - started) / 1000 + " ms");
+
+        return this;
+    }
+
+    private Single<UnknownMessage> signAsync() {
+        final UnknownMessage messageToSign = this;
+        return Single.fromCallable(new Callable<UnknownMessage>() {
+            @Override
+            public UnknownMessage call() throws Exception {
+                return messageToSign.sign();
+            }
+        }).subscribeOn(Schedulers.computation());
     }
 
     // Raw encrypted data, used only for debugging purposes
