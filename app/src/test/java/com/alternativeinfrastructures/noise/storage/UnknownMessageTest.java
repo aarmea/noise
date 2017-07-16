@@ -29,6 +29,10 @@ public class UnknownMessageTest {
         FlowManager.destroy();
     }
 
+    // Tests in here failed with "No such manifest file"?
+    // Roboelectric needs the Android JUnit working directory set to $MODULE_DIR$.
+    // https://github.com/robolectric/robolectric/issues/2949
+
     @Test
     public void createNewMessage() throws Exception {
         byte[] payload = "This is a test message".getBytes();
