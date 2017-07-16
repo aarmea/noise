@@ -211,7 +211,7 @@ public class UnknownMessage extends BaseRXModel {
                 }).build().executeSync();
                 return messageToSave;
             }
-        }).subscribeOn(Schedulers.io());
+        }).subscribeOn(Schedulers.computation());
     }
 
     private UnknownMessage sign() {
