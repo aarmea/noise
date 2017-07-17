@@ -41,7 +41,7 @@ public class BloomFilter extends BaseModel {
     BloomFilter() {}
 
     static List<Integer> hashMessage(UnknownMessage message) {
-        Vector<Integer> hashList = new Vector<Integer>();
+        Vector<Integer> hashList = new Vector<Integer>(NUM_HASHES);
 
         MurmurHash3.LongPair primaryHash = new MurmurHash3.LongPair();
         MurmurHash3.murmurhash3_x64_128(message.payload.getBlob(), 0 /*offset*/, UnknownMessage.PAYLOAD_SIZE, 0 /*seed*/, primaryHash);
