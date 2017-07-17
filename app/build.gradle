@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.neenbedankt.android-apt'
 
-def dbflow_version = "4.0.3"
+def dbflow_version = "4.0.4"
 
 android {
     compileSdkVersion 25
@@ -47,7 +47,7 @@ dependencies {
     compile 'com.squareup.okio:okio:1.13.0'
 
     compile "io.reactivex.rxjava2:rxandroid:2.0.1"
-    compile "io.reactivex.rxjava2:rxjava:2.1.0"
+    compile "io.reactivex.rxjava2:rxjava:2.1.1"
 
     apt "com.github.Raizlabs.DBFlow:dbflow-processor:${dbflow_version}"
     compile "com.github.Raizlabs.DBFlow:dbflow-core:${dbflow_version}"
