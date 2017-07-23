@@ -9,17 +9,15 @@ import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
 import com.raizlabs.android.dbflow.rx2.language.RXSQLite;
 import com.raizlabs.android.dbflow.rx2.structure.BaseRXModel;
+import com.raizlabs.android.dbflow.sql.language.CursorResult;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
 
 import java.util.BitSet;
 import java.util.List;
 import java.util.Vector;
-import java.util.concurrent.Callable;
 
 import io.reactivex.Single;
-import io.reactivex.annotations.NonNull;
-import io.reactivex.functions.BiFunction;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.functions.Function;
 import util.hash.MurmurHash3;
 
 // Actual bloom filter implementation based heavily on this guide:
@@ -78,25 +76,19 @@ public class BloomFilter extends BaseRXModel {
 
     public static Single<BitSet> getMessageVectorAsync() {
         return RXSQLite.rx(SQLite.select(BloomFilter_Table.hash.distinct()).from(BloomFilter.class))
-                .queryStreamResults().reduceWith(
-            new Callable<BitSet>() {
-                @Override
-                public BitSet call() {
-                    return makeEmptyMessageVector();
+                .queryResults().map(new Function<CursorResult<BloomFilter>, BitSet>() {
+            @Override
+            public BitSet apply(CursorResult<BloomFilter> bloomCursor) {
+                BitSet messageVector = makeEmptyMessageVector();
+                for (int bloomIndex = 0; bloomIndex < bloomCursor.getCount(); ++bloomIndex) {
+                    BloomFilter filterElement = bloomCursor.getItem(bloomIndex);
+                    if (filterElement != null)
+                        messageVector.set(filterElement.hash);
                 }
-            },
-            new BiFunction<BitSet, BloomFilter, BitSet>() {
-                @Override
-                public BitSet apply(@NonNull BitSet messageVector, @NonNull BloomFilter filterElement) throws Exception {
-                    // TODO: This is never called when run in a unit test
-                    // TODO: This doesn't work on device either
-                    // TODO: Check whether the database call is even made
-                    // Use a breakpoint in DBFlow on AndroidDatabase::rawQuery
-                    // It might be a DBFlow bug: https://github.com/Raizlabs/DBFlow/pull/1262
-                    messageVector.set(filterElement.hash);
-                    return messageVector;
-                }
-            }).subscribeOn(Schedulers.computation());
+                bloomCursor.close();
+                return messageVector;
+            }
+        });
     }
 
     private static long nthHash(long hashA, long hashB, int hashFunction) {
