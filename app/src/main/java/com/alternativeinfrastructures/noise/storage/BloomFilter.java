@@ -7,19 +7,25 @@ import com.raizlabs.android.dbflow.annotation.ForeignKey;
 import com.raizlabs.android.dbflow.annotation.ForeignKeyAction;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
+import com.raizlabs.android.dbflow.rx2.language.RXSQLite;
+import com.raizlabs.android.dbflow.rx2.structure.BaseRXModel;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
-import com.raizlabs.android.dbflow.structure.BaseModel;
 
 import java.util.BitSet;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.Callable;
 
+import io.reactivex.Single;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.functions.BiFunction;
+import io.reactivex.schedulers.Schedulers;
 import util.hash.MurmurHash3;
 
 // Actual bloom filter implementation based heavily on this guide:
 // http://blog.michaelschmatz.com/2016/04/11/how-to-write-a-bloom-filter-cpp/
 @Table(database = MessageDatabase.class)
-public class BloomFilter extends BaseModel {
+public class BloomFilter extends BaseRXModel {
     public static final String TAG = "BloomFilter";
 
     // TODO: Tune these
@@ -59,7 +65,8 @@ public class BloomFilter extends BaseModel {
             BloomFilter row = new BloomFilter();
             row.message = message;
             row.hash = hash;
-            row.save();
+            // blockingGet is okay here because this is always called from within a Transaction
+            row.save().blockingGet();
         }
     }
 
@@ -69,22 +76,27 @@ public class BloomFilter extends BaseModel {
         return messageVector;
     }
 
-    public static BitSet getMessageVector() {
-        if (Looper.getMainLooper().getThread() == Thread.currentThread())
-            Log.e(TAG, "Attempting to get the bit vector on the UI thread");
-
-        // TODO: Make this query async so we don't block the caller
-        List<BloomFilter> hashList = SQLite.select(BloomFilter_Table.hash)
-                .from(BloomFilter.class)
-                .orderBy(BloomFilter_Table.hash, true /*ascending*/)
-                .queryList();
-
-        BitSet messageVector = makeEmptyMessageVector();
-        for (BloomFilter hash : hashList) {
-            messageVector.set(hash.hash);
-        }
-
-        return messageVector;
+    public static Single<BitSet> getMessageVectorAsync() {
+        return RXSQLite.rx(SQLite.select(BloomFilter_Table.hash.distinct()).from(BloomFilter.class))
+                .queryStreamResults().reduceWith(
+            new Callable<BitSet>() {
+                @Override
+                public BitSet call() {
+                    return makeEmptyMessageVector();
+                }
+            },
+            new BiFunction<BitSet, BloomFilter, BitSet>() {
+                @Override
+                public BitSet apply(@NonNull BitSet messageVector, @NonNull BloomFilter filterElement) throws Exception {
+                    // TODO: This is never called when run in a unit test
+                    // TODO: This doesn't work on device either
+                    // TODO: Check whether the database call is even made
+                    // Use a breakpoint in DBFlow on AndroidDatabase::rawQuery
+                    // It might be a DBFlow bug: https://github.com/Raizlabs/DBFlow/pull/1262
+                    messageVector.set(filterElement.hash);
+                    return messageVector;
+                }
+            }).subscribeOn(Schedulers.computation());
     }
 
     private static long nthHash(long hashA, long hashB, int hashFunction) {

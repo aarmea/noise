@@ -40,7 +40,7 @@ public class StreamSync {
 
         Log.d(TAG, "Connected to a peer");
 
-        final BitSet myMessageVector = BloomFilter.getMessageVector();
+        final BitSet myMessageVector = BloomFilter.getMessageVectorAsync().blockingGet();
         IOFutures<BitSet> messageVectorFutures = exchangeMessageVectorsAsync(myMessageVector, source, sink, ioExecutors);
 
         BitSet theirMessageVector;

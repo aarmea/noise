@@ -37,10 +37,11 @@ public class UnknownMessageTest {
     public void createNewMessage() throws Exception {
         byte[] payload = "This is a test message".getBytes();
         UnknownMessage message = UnknownMessage.createAndSignAsync(payload, TEST_ZERO_BITS).blockingGet();
+        BitSet messageVector = BloomFilter.getMessageVectorAsync().blockingGet();
 
         assertTrue(message.isValid());
         assertPayloadContents(message, payload);
-        assertVectorContainsMessage(message, BloomFilter.getMessageVector());
+        assertVectorContainsMessage(message, messageVector);
     }
 
     @Test
@@ -56,10 +57,11 @@ public class UnknownMessageTest {
 
         ByteArrayInputStream messageStream = new ByteArrayInputStream(savedMessage);
         UnknownMessage reloadedMessage = UnknownMessage.createFromSourceAsync(Okio.buffer(Okio.source(messageStream))).blockingGet();
+        BitSet messageVector = BloomFilter.getMessageVectorAsync().blockingGet();
 
         assertTrue(reloadedMessage.isValid());
         assertPayloadContents(reloadedMessage, payload);
-        assertVectorContainsMessage(reloadedMessage, BloomFilter.getMessageVector());
+        assertVectorContainsMessage(reloadedMessage, messageVector);
     }
 
     // TODO: Test invalid messages
