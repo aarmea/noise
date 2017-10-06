@@ -31,6 +31,7 @@ import com.alternativeinfrastructures.noise.sync.StreamSync;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class BluetoothSyncService extends Service {
     public static final String TAG = "BluetoothSyncService";
@@ -44,6 +45,7 @@ public class BluetoothSyncService extends Service {
     private BluetoothLeAdvertiser bluetoothLeAdvertiser;
     private BluetoothLeScanner bluetoothLeScanner;
     private Thread bluetoothClassicServer;
+    private ConcurrentHashMap<String, Boolean> openConnections;
 
     public BluetoothSyncService() {
     }
@@ -269,30 +271,39 @@ public class BluetoothSyncService extends Service {
             BluetoothSocket socket = null;
 
             while (started) {
+                String macAddress = null;
                 try {
                     // This will block until there is a connection
                     Log.d(TAG, "Bluetooth Classic server is listening for a client");
                     socket = serverSocket.accept();
-
-                    StreamSync.bidirectionalSync(socket.getInputStream(), socket.getOutputStream());
+                    macAddress = socket.getRemoteDevice().getAddress();
+                    if (!openConnections.containsKey(macAddress)) {
+                        openConnections.put(macAddress, true);
+                        StreamSync.bidirectionalSync(socket.getInputStream(), socket.getOutputStream());
+                    }
                     socket.close();
                 } catch (IOException connectException) {
                     Log.e(TAG, "Failed to start a Bluetooth Classic connection as a server", connectException);
 
                     try {
-                        socket.close();
+                        if (socket != null)
+                            socket.close();
                     } catch (IOException closeException) {
                         Log.e(TAG, "Failed to close a Bluetooth Classic connection as a server", closeException);
                     }
                 }
+                if (macAddress != null)
+                    openConnections.remove(macAddress);
             }
         }
     }
 
     private class BluetoothClassicClient extends Thread {
         BluetoothSocket socket = null;
+        String macAddress = null;
 
         public BluetoothClassicClient(BluetoothDevice device, UUID uuid) {
+            macAddress = device.getAddress();
             try {
                 socket = device.createInsecureRfcommSocketToServiceRecord(uuid);
             } catch (IOException connectException) {
@@ -302,6 +313,12 @@ public class BluetoothSyncService extends Service {
 
         @Override
         public void run() {
+            // TODO: This should be done with a counter instead
+            // See the ConcurrentHashMap documentation's note on LongAdder (need Java 8/Android Studio 3)
+            if (openConnections.containsKey(macAddress))
+                return;
+
+            openConnections.put(macAddress, true);
             try {
                 // This will block until there is a connection
                 Log.d(TAG, "Bluetooth Classic client is attempting to connect to a server");
@@ -318,6 +335,7 @@ public class BluetoothSyncService extends Service {
                     Log.e(TAG, "Failed to close a Bluetooth Classic connection as a client", closeException);
                 }
             }
+            openConnections.remove(macAddress);
         }
     }
 
@@ -351,6 +369,8 @@ public class BluetoothSyncService extends Service {
 
         bluetoothClassicServer = new BluetoothClassicServer(serviceUuidAndAddress);
         bluetoothClassicServer.start();
+
+        openConnections = new ConcurrentHashMap<String, Boolean>();
 
         Log.d(TAG, "Started");
         Toast.makeText(this, R.string.bluetooth_sync_started, Toast.LENGTH_LONG).show();
