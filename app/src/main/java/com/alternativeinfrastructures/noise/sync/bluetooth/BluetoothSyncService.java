@@ -356,15 +356,20 @@ public class BluetoothSyncService extends Service {
 
         BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
-        bluetoothLeAdvertiser = bluetoothAdapter.getBluetoothLeAdvertiser();
-        bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
 
         // First half identifies that the advertisement is for Noise.
         // Second half is the MAC address of this device's Bluetooth adapter so that clients know how to connect to it.
         // These are not listed separately in the advertisement because a UUID is 16 bytes and ads are limited to 31 bytes.
         String macAddress = getBluetoothAdapterAddress(bluetoothAdapter);
+        if (macAddress == null) {
+            Log.e(TAG, "Unable to get this device's Bluetooth MAC address");
+            stopSelf(startId);
+            return START_NOT_STICKY;
+        }
         serviceUuidAndAddress = new UUID(SERVICE_UUID_HALF.getMostSignificantBits(), longFromMacAddress(macAddress));
 
+        bluetoothLeAdvertiser = bluetoothAdapter.getBluetoothLeAdvertiser();
+        bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
         startBluetoothLeDiscovery(startId);
 
         bluetoothClassicServer = new BluetoothClassicServer(serviceUuidAndAddress);
