@@ -81,13 +81,7 @@ public class UnknownMessage extends BaseRXModel {
         message.date = new Date();
         message.payload = new Blob(payload);
 
-        // TODO: Once we have Java 8 support, replace this with a method reference for clarity
-        return message.signAsync().flatMap(new Function<UnknownMessage, Single<UnknownMessage>>() {
-            @Override
-            public Single<UnknownMessage> apply(UnknownMessage message) {
-                return message.saveAsync();
-            }
-        });
+        return message.signAsync().flatMap(UnknownMessage::saveAsync);
     }
 
     public static Single<UnknownMessage> createFromSourceAsync(BufferedSource source) throws IOException, InvalidMessageException {

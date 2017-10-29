@@ -313,8 +313,7 @@ public class BluetoothSyncService extends Service {
 
         @Override
         public void run() {
-            // TODO: This should be done with a counter instead
-            // See the ConcurrentHashMap documentation's note on LongAdder (need Java 8/Android Studio 3)
+            // TODO: This should be done with a counter instead (with AtomicInteger)
             if (openConnections.containsKey(macAddress))
                 return;
 
