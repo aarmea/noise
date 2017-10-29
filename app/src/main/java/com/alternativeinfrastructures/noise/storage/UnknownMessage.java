@@ -1,7 +1,6 @@
 package com.alternativeinfrastructures.noise.storage;
 
 import android.os.Looper;
-import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
 
@@ -12,7 +11,6 @@ import com.raizlabs.android.dbflow.config.FlowManager;
 import com.raizlabs.android.dbflow.data.Blob;
 import com.raizlabs.android.dbflow.rx2.structure.BaseRXModel;
 import com.raizlabs.android.dbflow.structure.database.DatabaseWrapper;
-import com.raizlabs.android.dbflow.structure.database.transaction.ITransaction;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 
 import java.io.ByteArrayOutputStream;
@@ -21,10 +19,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Date;
-import java.util.concurrent.Callable;
 
 import io.reactivex.Single;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okio.BufferedSink;
 import okio.BufferedSource;
@@ -81,7 +77,7 @@ public class UnknownMessage extends BaseRXModel {
         message.date = new Date();
         message.payload = new Blob(payload);
 
-        return message.signAsync().flatMap(UnknownMessage::saveAsync);
+        return Single.fromCallable(message::sign).flatMap(UnknownMessage::saveAsync).subscribeOn(Schedulers.computation());
     }
 
     public static Single<UnknownMessage> createFromSourceAsync(BufferedSource source) throws IOException, InvalidMessageException {
@@ -179,32 +175,19 @@ public class UnknownMessage extends BaseRXModel {
 
     public Single<UnknownMessage> saveAsync() {
         final UnknownMessage messageToSave = this;
-        return Single.fromCallable(new Callable<UnknownMessage>() {
-            @Override
-            public UnknownMessage call() throws Exception {
-                FlowManager.getDatabase(MessageDatabase.class).beginTransactionAsync(new ITransaction() {
-                    @Override
-                    public void execute(DatabaseWrapper databaseWrapper) {
-                        // blockingGet is okay here because this is ultimately wrapped in a Callable
-                        messageToSave.save(databaseWrapper).blockingGet();
+        return Single.fromCallable(() -> {
+            FlowManager.getDatabase(MessageDatabase.class).beginTransactionAsync((DatabaseWrapper databaseWrapper) -> {
+                // blockingGet is okay here because this is ultimately wrapped in a Callable
+                messageToSave.save(databaseWrapper).blockingGet();
 
-                        // TODO: Do this using a listener and then we won't need saveAsync anymore (message.insert() will implicitly manage the filter)
-                        // https://agrosner.gitbooks.io/dbflow/content/Observability.html
-                        BloomFilter.addMessage(messageToSave);
-                    }
-                }).success(new Transaction.Success() {
-                    @Override
-                    public void onSuccess(@NonNull Transaction transaction) {
-                        Log.d(TAG, "Saved a message");
-                    }
-                }).error(new Transaction.Error() {
-                    @Override
-                    public void onError(@NonNull Transaction transaction, @NonNull Throwable error) {
-                        Log.e(TAG, "Error saving a message", error);
-                    }
-                }).build().executeSync();
-                return messageToSave;
-            }
+                // TODO: Do this using a listener and then we won't need saveAsync anymore (message.insert() will implicitly manage the filter)
+                // https://agrosner.gitbooks.io/dbflow/content/Observability.html
+                BloomFilter.addMessage(messageToSave);
+            })
+                    .success((Transaction t) -> Log.d(TAG, "Saved a message"))
+                    .error((Transaction t, Throwable e) -> Log.e(TAG, "Error saving a message", e))
+                    .build().executeSync();
+            return messageToSave;
         }).subscribeOn(Schedulers.computation());
     }
 
@@ -228,16 +211,6 @@ public class UnknownMessage extends BaseRXModel {
         Log.d(TAG, "Signing took " + (finished - started) / 1000 + " ms");
 
         return this;
-    }
-
-    private Single<UnknownMessage> signAsync() {
-        final UnknownMessage messageToSign = this;
-        return Single.fromCallable(new Callable<UnknownMessage>() {
-            @Override
-            public UnknownMessage call() throws Exception {
-                return messageToSign.sign();
-            }
-        }).subscribeOn(Schedulers.computation());
     }
 
     // Raw encrypted data, used only for debugging purposes

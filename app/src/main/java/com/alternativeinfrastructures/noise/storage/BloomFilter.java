@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Vector;
 
 import io.reactivex.Single;
-import io.reactivex.functions.Function;
 import util.hash.MurmurHash3;
 
 // Actual bloom filter implementation based heavily on this guide:
@@ -76,18 +75,15 @@ public class BloomFilter extends BaseRXModel {
 
     public static Single<BitSet> getMessageVectorAsync() {
         return RXSQLite.rx(SQLite.select(BloomFilter_Table.hash.distinct()).from(BloomFilter.class))
-                .queryResults().map(new Function<CursorResult<BloomFilter>, BitSet>() {
-            @Override
-            public BitSet apply(CursorResult<BloomFilter> bloomCursor) {
-                BitSet messageVector = makeEmptyMessageVector();
-                for (int bloomIndex = 0; bloomIndex < bloomCursor.getCount(); ++bloomIndex) {
-                    BloomFilter filterElement = bloomCursor.getItem(bloomIndex);
-                    if (filterElement != null)
-                        messageVector.set(filterElement.hash);
-                }
-                bloomCursor.close();
-                return messageVector;
+                .queryResults().map((CursorResult<BloomFilter> bloomCursor) -> {
+            BitSet messageVector = makeEmptyMessageVector();
+            for (int bloomIndex = 0; bloomIndex < bloomCursor.getCount(); ++bloomIndex) {
+                BloomFilter filterElement = bloomCursor.getItem(bloomIndex);
+                if (filterElement != null)
+                    messageVector.set(filterElement.hash);
             }
+            bloomCursor.close();
+            return messageVector;
         });
     }
 
