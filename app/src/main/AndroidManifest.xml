@@ -8,6 +8,7 @@
     <!-- Bluetooth syncing -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.LOCAL_MAC_ADDRESS" />
 
     <!-- This app never uses location, but Android requires location to do a BLE scan?!
     https://stackoverflow.com/questions/33045581/location-needs-to-be-enabled-for-bluetooth-low-energy-scanning-on-android-6-0

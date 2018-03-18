@@ -118,7 +118,7 @@ public class BluetoothSyncService extends Service {
         ScanSettings.Builder builder = new ScanSettings.Builder();
         builder.setScanMode(ScanSettings.SCAN_MODE_LOW_POWER);
 
-        if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= 23 /* Marshmallow */) {
             builder.setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE);
             builder.setNumOfMatches(ScanSettings.MATCH_NUM_MAX_ADVERTISEMENT);
             builder.setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES);
@@ -130,7 +130,8 @@ public class BluetoothSyncService extends Service {
     private static String getBluetoothAdapterAddress(BluetoothAdapter bluetoothAdapter) {
         @SuppressLint("HardwareIds") // Pair-free peer-to-peer communication should qualify as an "advanced telephony use case".
         String address = bluetoothAdapter.getAddress();
-        if (address.equals(FAKE_MAC_ADDRESS)) {
+
+        if (address.equals(FAKE_MAC_ADDRESS) && Build.VERSION.SDK_INT < 26 /* Oreo */) {
             Log.w(TAG, "bluetoothAdapter.getAddress() did not return the physical address");
 
             // HACK HACK HACK: getAddress is intentionally broken (but not deprecated?!) on Marshmallow and up:
@@ -155,6 +156,15 @@ public class BluetoothSyncService extends Service {
             }
 
             address = (String) internalAddress;
+        }
+
+        // On Oreo and above, Android will throw a SecurityException if we try to get the MAC address with reflection
+        // https://android-developers.googleblog.com/2017/04/changes-to-device-identifiers-in.html
+        // https://stackoverflow.com/a/35984808/702467
+        if (address.equals(FAKE_MAC_ADDRESS)) {
+            Log.w(TAG, "Android is actively blocking requests to get the MAC address");
+            return null;
+            // TODO: In this case, present UI that asks the user to manually copy the MAC address from settings
         }
 
         return address;
