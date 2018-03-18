@@ -371,6 +371,7 @@ public class BluetoothSyncService extends Service {
         bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
         startBluetoothLeDiscovery(startId);
 
+        started = true;
         bluetoothClassicServer = new BluetoothClassicServer(serviceUuidAndAddress);
         bluetoothClassicServer.start();
 
@@ -378,7 +379,6 @@ public class BluetoothSyncService extends Service {
 
         Log.d(TAG, "Started");
         Toast.makeText(this, R.string.bluetooth_sync_started, Toast.LENGTH_LONG).show();
-        started = true;
         return START_STICKY;
     }
 
