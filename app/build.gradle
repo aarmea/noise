@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 
-def dbflow_version = "4.1.2"
+def dbflow_version = "4.2.4"
 
 android {
     compileSdkVersion 25
@@ -48,14 +48,14 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.4.0'
     compile 'com.android.support:design:25.4.0'
     testCompile 'junit:junit:4.12'
-    testImplementation 'org.robolectric:robolectric:3.4.2'
+    testImplementation 'org.robolectric:robolectric:3.8'
 
     compile group: 'net.vidageek', name: 'mirror', version: '1.6.1'
 
-    compile 'com.squareup.okio:okio:1.13.0'
+    compile 'com.squareup.okio:okio:1.14.0'
 
-    compile "io.reactivex.rxjava2:rxandroid:2.0.1"
-    compile "io.reactivex.rxjava2:rxjava:2.1.6"
+    compile "io.reactivex.rxjava2:rxandroid:2.0.2"
+    compile "io.reactivex.rxjava2:rxjava:2.1.10"
 
     annotationProcessor "com.github.Raizlabs.DBFlow:dbflow-processor:${dbflow_version}"
     compile "com.github.Raizlabs.DBFlow:dbflow-core:${dbflow_version}"
