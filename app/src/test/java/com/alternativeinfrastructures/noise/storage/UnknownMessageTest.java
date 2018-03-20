@@ -56,7 +56,7 @@ public class UnknownMessageTest {
         assertEquals(0, SQLite.select().from(BloomFilter.class).count());
 
         ByteArrayInputStream messageStream = new ByteArrayInputStream(savedMessage);
-        UnknownMessage reloadedMessage = UnknownMessage.createFromSourceAsync(Okio.buffer(Okio.source(messageStream))).blockingGet();
+        UnknownMessage reloadedMessage = UnknownMessage.fromSource(Okio.buffer(Okio.source(messageStream))).saveAsync().blockingGet();
         BitSet messageVector = BloomFilter.getMessageVectorAsync().blockingGet();
 
         assertTrue(reloadedMessage.isValid());

@@ -110,6 +110,10 @@ public class StreamSyncTest {
         // TODO: Test failure conditions
     }
 
-    // TODO: Message send test
-    // TODO: Message receive test
+    @Test
+    public void sendReceiveMessages() throws Exception {
+        // TODO: Create some test messages (without saving them)
+        // TODO: Send those test messages via sendMessageAsync
+        // TODO: Receive those messages via receiveMessageAsync and verify that they match the original messages
+    }
 }

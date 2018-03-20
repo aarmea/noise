@@ -3,6 +3,7 @@ package com.alternativeinfrastructures.noise.sync;
 import android.util.Log;
 
 import com.alternativeinfrastructures.noise.storage.BloomFilter;
+import com.alternativeinfrastructures.noise.storage.UnknownMessage;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +15,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
+import io.reactivex.FlowableEmitter;
+import io.reactivex.schedulers.Schedulers;
 import okio.BufferedSink;
 import okio.BufferedSource;
 import okio.Okio;
@@ -23,6 +28,8 @@ public class StreamSync {
 
     public static void bidirectionalSync(InputStream inputStream, OutputStream outputStream) {
         Log.d(TAG, "Starting sync");
+
+        // TODO: Set timeouts
 
         final BufferedSource source = Okio.buffer(Okio.source(inputStream));
         final BufferedSink sink = Okio.buffer(Okio.sink(outputStream));
@@ -50,12 +57,24 @@ public class StreamSync {
             return;
         }
 
-        Log.d(TAG, "Exchanged message vectors");
-
         // TODO: Include a subset of the message vector in the broadcast and verify that theirMessageVector matches
-        // TODO: Send and receive individual messages (in separate threads so we can send and receive simultaneously)
-        // TODO: Write tests for this class/function
+
+        Log.d(TAG, "Exchanged message vectors");
         ioExecutors.shutdown();
+
+        BitSet vectorDifference = BloomFilter.calculateDifference(myMessageVector, theirMessageVector);
+
+        // TODO: Is this I/O as parallel as you think it is? Look into explicitly using separate threads for these
+        Flowable<UnknownMessage> myMessages = BloomFilter.getMatchingMessages(vectorDifference);
+        sendMessagesAsync(myMessages, sink);
+
+        Flowable<UnknownMessage> theirMessages = receiveMessagesAsync(source);
+        theirMessages.subscribe(
+                (UnknownMessage message) -> message.saveAsync().subscribe(),
+                (Throwable e) -> Log.e(TAG, "Error receiving messages", e));
+
+        // Wait until both complete so that we don't prematurely close the connection
+        Log.d(TAG, "Sync completed");
     }
 
     private static final String PROTOCOL_NAME = "Noise0";
@@ -138,5 +157,40 @@ public class StreamSync {
         });
 
         return futures;
+    }
+
+    static void sendMessagesAsync(final Flowable<UnknownMessage> myMessages, final BufferedSink sink) {
+        Log.d(TAG, "Sending messages");
+        myMessages.subscribe((UnknownMessage message) -> {
+            sink.writeByte(Messages.MESSAGE.getValue());
+            message.writeToSink(sink);
+            sink.flush();
+        }, (Throwable e) -> {
+            Log.e(TAG, "Error sending messages", e);
+        }, () -> {
+            Log.d(TAG, "Sent messages");
+            sink.writeByte(Messages.END.getValue());
+            sink.flush();
+        });
+    }
+
+    static Flowable<UnknownMessage> receiveMessagesAsync(final BufferedSource source) {
+        Log.d(TAG, "Receiving messages");
+        return Flowable.create((FlowableEmitter<UnknownMessage> messageEmitter) -> {
+            int messageCount = 0;
+            while (true) {
+                byte messageType = source.readByte();
+                if (messageType == Messages.END.getValue())
+                    break;
+                else if (messageType != Messages.MESSAGE.getValue())
+                    messageEmitter.onError(new IOException("Expected a message but got " + messageType));
+
+                messageEmitter.onNext(UnknownMessage.fromSource(source));
+                ++messageCount;
+            }
+
+            messageEmitter.onComplete();
+            Log.d(TAG, "Received " + messageCount + " messages");
+        }, BackpressureStrategy.BUFFER);
     }
 }

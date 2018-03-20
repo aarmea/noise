@@ -5,11 +5,13 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.raizlabs.android.dbflow.annotation.Column;
+import com.raizlabs.android.dbflow.annotation.Index;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
 import com.raizlabs.android.dbflow.config.FlowManager;
 import com.raizlabs.android.dbflow.data.Blob;
 import com.raizlabs.android.dbflow.rx2.structure.BaseRXModel;
+import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.structure.database.DatabaseWrapper;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 
@@ -49,6 +51,7 @@ public class UnknownMessage extends BaseRXModel {
     protected Date date;
 
     @Column
+    @Index
     protected Blob payload;
 
     @Column
@@ -80,7 +83,7 @@ public class UnknownMessage extends BaseRXModel {
         return Single.fromCallable(message::sign).flatMap(UnknownMessage::saveAsync).subscribeOn(Schedulers.computation());
     }
 
-    public static Single<UnknownMessage> createFromSourceAsync(BufferedSource source) throws IOException, InvalidMessageException {
+    public static UnknownMessage fromSource(BufferedSource source) throws IOException {
         // TODO: This I/O shouldn't happen directly on this thread!
         // But it's probably okay as long as it's called from a networking thread
         if (Looper.getMainLooper().getThread() == Thread.currentThread())
@@ -92,12 +95,7 @@ public class UnknownMessage extends BaseRXModel {
         message.date = new Date(source.readLong());
         message.payload = new Blob(source.readByteArray(PAYLOAD_SIZE));
         message.counter = source.readInt();
-
-        // TODO: Include the reason *why* the message is invalid in the exception
-        if (!message.isValid())
-            throw new InvalidMessageException();
-
-        return message.saveAsync();
+        return message;
     }
 
     public void writeToSink(BufferedSink sink) throws IOException {
@@ -174,9 +172,21 @@ public class UnknownMessage extends BaseRXModel {
     }
 
     public Single<UnknownMessage> saveAsync() {
+        Log.d(TAG, "Saving a message");
         final UnknownMessage messageToSave = this;
         return Single.fromCallable(() -> {
+            // TODO: Include the reason *why* the message is invalid in the exception
+            if (!messageToSave.isValid())
+                throw new InvalidMessageException();
+
             FlowManager.getDatabase(MessageDatabase.class).beginTransactionAsync((DatabaseWrapper databaseWrapper) -> {
+                long equalMessages = SQLite.selectCountOf().from(UnknownMessage.class)
+                        .where(UnknownMessage_Table.payload.eq(messageToSave.payload)).count();
+                if (equalMessages > 0) {
+                    Log.d(TAG, "Skipping existing message");
+                    return;
+                }
+
                 // blockingGet is okay here because this is ultimately wrapped in a Callable
                 messageToSave.save(databaseWrapper).blockingGet();
 

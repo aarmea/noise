@@ -16,6 +16,7 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Vector;
 
+import io.reactivex.Flowable;
 import io.reactivex.Single;
 import util.hash.MurmurHash3;
 
@@ -73,6 +74,14 @@ public class BloomFilter extends BaseRXModel {
         return messageVector;
     }
 
+    public static BitSet calculateDifference(BitSet myMessageVector, BitSet theirMessageVector) {
+        BitSet messageDifference = makeEmptyMessageVector();
+        messageDifference.or(theirMessageVector);
+        messageDifference.flip(0, SIZE);
+        messageDifference.or(myMessageVector);
+        return messageDifference;
+    }
+
     public static Single<BitSet> getMessageVectorAsync() {
         return RXSQLite.rx(SQLite.select(BloomFilter_Table.hash.distinct()).from(BloomFilter.class))
                 .queryResults().map((CursorResult<BloomFilter> bloomCursor) -> {
@@ -87,10 +96,14 @@ public class BloomFilter extends BaseRXModel {
         });
     }
 
+    public static Flowable<UnknownMessage> getMatchingMessages(BitSet messageVector) {
+        // TODO: Only return the messages that match the given hash values
+        return RXSQLite.rx(SQLite.select().from(UnknownMessage.class))
+                .queryStreamResults(); // XXX
+    }
+
     private static long nthHash(long hashA, long hashB, int hashFunction) {
         // Double modulus ensures that the result is positive when any of the hashes are negative
         return ((hashA + hashFunction * hashB) % USABLE_SIZE + USABLE_SIZE) % USABLE_SIZE;
     }
-
-    // TODO: Write a query that gets an UnknownMessage using its hash values
 }
