@@ -194,7 +194,7 @@ public class BluetoothSyncService extends Service {
                     @Override
                     public void onStartSuccess(AdvertiseSettings settingsInEffect) {
                         super.onStartSuccess(settingsInEffect);
-                        Log.d(TAG, "BLE advertise started with UUID " + serviceUuidAndAddress.toString());
+                        Log.d(TAG, "BLE advertise started");
                     }
 
                     @Override
@@ -229,7 +229,7 @@ public class BluetoothSyncService extends Service {
                             if (!matchesServiceUuid(uuid.getUuid()))
                                 continue;
 
-                            Log.d(TAG, "Found supported device with service UUID " + uuid.toString());
+                            Log.d(TAG, "BLE scanner found supported device");
 
                             // Android uses randomly-generated MAC addresses in its broadcasts, and result.getDevice() uses that broadcast address.
                             // Unfortunately, the device that sent the broadcast can't listen using that MAC address.
