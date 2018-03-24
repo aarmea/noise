@@ -218,7 +218,7 @@ public class UnknownMessage extends BaseRXModel {
         }
         long finished = System.nanoTime();
 
-        Log.d(TAG, "Signing took " + (finished - started) / 1000 + " ms");
+        Log.d(TAG, "Signing took " + (finished - started) / 1000000 + " ms");
 
         return this;
     }
