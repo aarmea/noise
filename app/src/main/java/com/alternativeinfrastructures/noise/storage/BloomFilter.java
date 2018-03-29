@@ -92,15 +92,14 @@ public class BloomFilter extends BaseRXModel {
     }
 
     public static Flowable<UnknownMessage> getMatchingMessages(BitSet messageVector) {
-        ArrayList<Integer> missingHashes = new ArrayList<Integer>();
-        for (int hash = messageVector.nextClearBit(0); hash < SIZE;
-             hash = messageVector.nextClearBit(hash+1))
-            missingHashes.add(hash);
+        ArrayList<Integer> hashes = new ArrayList<Integer>(messageVector.cardinality());
+        for (int hash = messageVector.nextSetBit(0); hash != -1; hash = messageVector.nextSetBit(hash+1))
+            hashes.add(hash);
 
         return RXSQLite.rx(SQLite.select(UnknownMessage_Table.ALL_COLUMN_PROPERTIES)
                 .from(UnknownMessage.class).leftOuterJoin(BloomFilter.class)
                 .on(UnknownMessage_Table.id.eq(BloomFilter_Table.message_id))
-                .where(BloomFilter_Table.hash.notIn(missingHashes))
+                .where(BloomFilter_Table.hash.in(hashes))
                 .groupBy(BloomFilter_Table.message_id)
                 .having(Method.count().eq(NUM_HASHES)))
         .queryStreamResults();
