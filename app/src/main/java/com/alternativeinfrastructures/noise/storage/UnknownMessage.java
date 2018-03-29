@@ -172,7 +172,6 @@ public class UnknownMessage extends BaseRXModel {
     }
 
     public Single<UnknownMessage> saveAsync() {
-        Log.d(TAG, "Saving a message");
         final UnknownMessage messageToSave = this;
         return Single.fromCallable(() -> {
             // TODO: Include the reason *why* the message is invalid in the exception
@@ -183,7 +182,7 @@ public class UnknownMessage extends BaseRXModel {
                 long equalMessages = SQLite.selectCountOf().from(UnknownMessage.class)
                         .where(UnknownMessage_Table.payload.eq(messageToSave.payload)).count();
                 if (equalMessages > 0) {
-                    Log.d(TAG, "Skipping existing message");
+                    Log.d(TAG, "Skipped saving an existing message");
                     return;
                 }
 
@@ -193,8 +192,8 @@ public class UnknownMessage extends BaseRXModel {
                 // TODO: Do this using a listener and then we won't need saveAsync anymore (message.insert() will implicitly manage the filter)
                 // https://agrosner.gitbooks.io/dbflow/content/Observability.html
                 BloomFilter.addMessage(messageToSave);
+                Log.d(TAG, "Saved a message");
             })
-                    .success((Transaction t) -> Log.d(TAG, "Saved a message"))
                     .error((Transaction t, Throwable e) -> Log.e(TAG, "Error saving a message", e))
                     .build().executeSync();
             return messageToSave;
