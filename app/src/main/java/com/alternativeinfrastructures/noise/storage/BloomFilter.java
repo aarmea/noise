@@ -10,8 +10,10 @@ import com.raizlabs.android.dbflow.annotation.Table;
 import com.raizlabs.android.dbflow.rx2.language.RXSQLite;
 import com.raizlabs.android.dbflow.rx2.structure.BaseRXModel;
 import com.raizlabs.android.dbflow.sql.language.CursorResult;
+import com.raizlabs.android.dbflow.sql.language.Method;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
 
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Vector;
@@ -47,6 +49,7 @@ public class BloomFilter extends BaseRXModel {
     static List<Integer> hashMessage(UnknownMessage message) {
         Vector<Integer> hashList = new Vector<Integer>(NUM_HASHES);
 
+        // TODO: Is using a non-cryptographic hash like murmurhash okay? An attacker can generate messages that match the hashes to try to block it
         MurmurHash3.LongPair primaryHash = new MurmurHash3.LongPair();
         MurmurHash3.murmurhash3_x64_128(message.payload.getBlob(), 0 /*offset*/, UnknownMessage.PAYLOAD_SIZE, 0 /*seed*/, primaryHash);
         for (int hashFunction = 0; hashFunction < NUM_HASHES; ++hashFunction)
@@ -74,14 +77,6 @@ public class BloomFilter extends BaseRXModel {
         return messageVector;
     }
 
-    public static BitSet calculateDifference(BitSet myMessageVector, BitSet theirMessageVector) {
-        BitSet messageDifference = makeEmptyMessageVector();
-        messageDifference.or(theirMessageVector);
-        messageDifference.flip(0, SIZE);
-        messageDifference.or(myMessageVector);
-        return messageDifference;
-    }
-
     public static Single<BitSet> getMessageVectorAsync() {
         return RXSQLite.rx(SQLite.select(BloomFilter_Table.hash.distinct()).from(BloomFilter.class))
                 .queryResults().map((CursorResult<BloomFilter> bloomCursor) -> {
@@ -97,9 +92,18 @@ public class BloomFilter extends BaseRXModel {
     }
 
     public static Flowable<UnknownMessage> getMatchingMessages(BitSet messageVector) {
-        // TODO: Only return the messages that match the given hash values
-        return RXSQLite.rx(SQLite.select().from(UnknownMessage.class))
-                .queryStreamResults(); // XXX
+        ArrayList<Integer> missingHashes = new ArrayList<Integer>();
+        for (int hash = messageVector.nextClearBit(0); hash < SIZE;
+             hash = messageVector.nextClearBit(hash+1))
+            missingHashes.add(hash);
+
+        return RXSQLite.rx(SQLite.select(UnknownMessage_Table.ALL_COLUMN_PROPERTIES)
+                .from(UnknownMessage.class).leftOuterJoin(BloomFilter.class)
+                .on(UnknownMessage_Table.id.eq(BloomFilter_Table.message_id))
+                .where(BloomFilter_Table.hash.notIn(missingHashes))
+                .groupBy(BloomFilter_Table.message_id)
+                .having(Method.count().eq(NUM_HASHES)))
+        .queryStreamResults();
     }
 
     private static long nthHash(long hashA, long hashB, int hashFunction) {

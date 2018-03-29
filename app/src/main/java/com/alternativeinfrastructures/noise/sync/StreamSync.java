@@ -62,7 +62,8 @@ public class StreamSync {
         Log.d(TAG, "Exchanged message vectors");
         ioExecutors.shutdown();
 
-        BitSet vectorDifference = BloomFilter.calculateDifference(myMessageVector, theirMessageVector);
+        BitSet vectorDifference = (BitSet) myMessageVector.clone();
+        vectorDifference.andNot(theirMessageVector);
 
         // TODO: Is this I/O as parallel as you think it is? Look into explicitly using separate threads for these
         Flowable<UnknownMessage> myMessages = BloomFilter.getMatchingMessages(vectorDifference);
