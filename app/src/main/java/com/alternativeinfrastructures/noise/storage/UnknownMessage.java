@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Date;
 
 import io.reactivex.Single;
@@ -119,6 +120,15 @@ public class UnknownMessage extends BaseRXModel {
         return byteStream.toByteArray();
     }
 
+    // Like equals(), but intentionally ignores the id which is just a speed optimization
+    public boolean equivalent(UnknownMessage other) {
+        return (version == other.version &&
+                zeroBits == other.zeroBits &&
+                date.equals(other.date) &&
+                Arrays.equals(payload.getBlob(), other.payload.getBlob()) &&
+                counter == other.counter);
+    }
+
     public boolean isValid() {
         // TODO: Validate the other fields first before calculating and checking the hash
         // (i.e. if the message is expired or we don't support the message version, return false now)
@@ -182,6 +192,7 @@ public class UnknownMessage extends BaseRXModel {
                 long equalMessages = SQLite.selectCountOf().from(UnknownMessage.class)
                         .where(UnknownMessage_Table.payload.eq(messageToSave.payload)).count();
                 if (equalMessages > 0) {
+                    // TODO: In this case, we should keep the newer message - someone intentionally signed it again
                     Log.d(TAG, "Skipped saving an existing message");
                     return;
                 }

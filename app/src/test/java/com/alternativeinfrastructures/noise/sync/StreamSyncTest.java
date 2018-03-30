@@ -2,6 +2,8 @@ package com.alternativeinfrastructures.noise.sync;
 
 import com.alternativeinfrastructures.noise.BuildConfig;
 import com.alternativeinfrastructures.noise.storage.BloomFilter;
+import com.alternativeinfrastructures.noise.storage.UnknownMessage;
+import com.alternativeinfrastructures.noise.storage.UnknownMessageTest;
 import com.raizlabs.android.dbflow.config.FlowManager;
 
 import org.junit.After;
@@ -11,11 +13,14 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.Flowable;
 import okio.BufferedSink;
 import okio.BufferedSource;
 import okio.Okio;
@@ -26,7 +31,7 @@ import static org.junit.Assert.*;
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class)
 public class StreamSyncTest {
-    static final long PIPE_SIZE = 1024;
+    static final long PIPE_SIZE = 16384;
     static final int TIMEOUT_VALUE = 10;
     static final TimeUnit TIMEOUT_UNIT = TimeUnit.SECONDS;
 
@@ -112,8 +117,19 @@ public class StreamSyncTest {
 
     @Test
     public void sendReceiveMessages() throws Exception {
-        // TODO: Create some test messages (without saving them)
-        // TODO: Send those test messages via sendMessageAsync
-        // TODO: Receive those messages via receiveMessageAsync and verify that they match the original messages
+        byte[] payload = "Test message".getBytes();
+        int numTestMessages = 10;
+
+        ArrayList<UnknownMessage> testMessages = new ArrayList<UnknownMessage>();
+        for (int i = 0; i < numTestMessages; ++i)
+            testMessages.add(UnknownMessage.createAndSignAsync(
+                    payload, UnknownMessageTest.ZERO_BITS).blockingGet());
+
+        StreamSync.sendMessagesAsync(Flowable.fromIterable(testMessages), firstSink);
+        List<UnknownMessage> receivedMessages =
+                StreamSync.receiveMessagesAsync(secondSource).toList().blockingGet();
+
+        for (int i = 0; i < numTestMessages; ++i)
+            assertTrue(testMessages.get(i).equivalent(receivedMessages.get(i)));
     }
 }

@@ -20,7 +20,7 @@ import static org.junit.Assert.*;
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class)
 public class UnknownMessageTest {
-    static final byte TEST_ZERO_BITS = 10;
+    public static final byte ZERO_BITS = 10;
 
     @After
     public void teardown() {
@@ -36,7 +36,7 @@ public class UnknownMessageTest {
     @Test
     public void createNewMessage() throws Exception {
         byte[] payload = "This is a test message".getBytes();
-        UnknownMessage message = UnknownMessage.createAndSignAsync(payload, TEST_ZERO_BITS).blockingGet();
+        UnknownMessage message = UnknownMessage.createAndSignAsync(payload, ZERO_BITS).blockingGet();
         BitSet messageVector = BloomFilter.getMessageVectorAsync().blockingGet();
 
         assertTrue(message.isValid());
@@ -47,7 +47,7 @@ public class UnknownMessageTest {
     @Test
     public void saveAndReloadMessage() throws Exception {
         byte[] payload = "This is another test message".getBytes();
-        UnknownMessage message = UnknownMessage.createAndSignAsync(payload, TEST_ZERO_BITS).blockingGet();
+        UnknownMessage message = UnknownMessage.createAndSignAsync(payload, ZERO_BITS).blockingGet();
         byte[] savedMessage = message.writeToByteArray();
 
         assertTrue(message.delete().blockingGet());
@@ -61,7 +61,18 @@ public class UnknownMessageTest {
 
         assertTrue(reloadedMessage.isValid());
         assertPayloadContents(reloadedMessage, payload);
+        assertTrue(message.equivalent(reloadedMessage));
         assertVectorContainsMessage(reloadedMessage, messageVector);
+    }
+
+    @Test
+    public void newMessagesAreDistinct() throws Exception {
+        byte[] payload = "Different calls to createAndSignAsync should produce different, unequal messages".getBytes();
+        UnknownMessage message1 = UnknownMessage.createAndSignAsync(payload, ZERO_BITS).blockingGet();
+        UnknownMessage message2 = UnknownMessage.createAndSignAsync(payload, ZERO_BITS).blockingGet();
+
+        assertFalse(message1.equivalent(message2));
+        assertNotEquals(message1, message2);
     }
 
     // TODO: Test invalid messages
