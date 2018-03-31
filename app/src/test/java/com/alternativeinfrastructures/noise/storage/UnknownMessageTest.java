@@ -70,7 +70,36 @@ public class UnknownMessageTest {
         assertNotEquals(message1, message2);
     }
 
-    // TODO: Test invalid messages
+    @Test
+    public void invalidMessage() throws Exception {
+        byte[] payload = "This will become an invalid message".getBytes();
+        UnknownMessage message = UnknownMessage.createAndSignAsync(payload, ZERO_BITS).blockingGet();
+
+        // Incorrect proof-of-work
+        ++message.counter;
+        assertFalse(message.isValid());
+        try {
+            message.saveAsync().blockingGet();
+            fail("Expected an InvalidMessageException");
+        } catch (Exception e) {
+            assertEquals(UnknownMessage.InvalidMessageException.class, e.getCause().getClass());
+        }
+    }
+
+    @Test
+    public void tooLargeMessage() throws Exception {
+        String payloadString = "This message will become too large to save. ";
+        for (int i = 0; i < 5; ++i)
+            payloadString = payloadString.concat(payloadString);
+        assertTrue(payloadString.length() > UnknownMessage.PAYLOAD_SIZE);
+
+        try {
+            UnknownMessage.createAndSignAsync(payloadString.getBytes(), ZERO_BITS).blockingGet();
+            fail("Expected a PayloadTooLargeException");
+        } catch (UnknownMessage.PayloadTooLargeException e) {
+            // Expected exception
+        }
+    }
 
     private void assertPayloadContents(UnknownMessage message, byte[] payload) {
         assertNotNull(message.payload);
