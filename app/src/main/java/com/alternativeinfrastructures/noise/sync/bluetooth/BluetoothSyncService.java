@@ -17,10 +17,12 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.ParcelUuid;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -28,16 +30,19 @@ import net.vidageek.mirror.dsl.Mirror;
 
 import com.alternativeinfrastructures.noise.R;
 import com.alternativeinfrastructures.noise.sync.StreamSync;
+import com.alternativeinfrastructures.noise.views.SettingsActivity;
 
 import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 public class BluetoothSyncService extends Service {
     public static final String TAG = "BluetoothSyncService";
     public static final UUID SERVICE_UUID_HALF = UUID.fromString("5ac825f4-6084-42a6-0000-000000000000");
 
     private static final String FAKE_MAC_ADDRESS = "02:00:00:00:00:00";
+    private static final Pattern MAC_PATTERN = Pattern.compile("\\w\\w:\\w\\w:\\w\\w:\\w\\w:\\w\\w:\\w\\w");
 
     private boolean started = false;
     private UUID serviceUuidAndAddress;
@@ -56,42 +61,60 @@ public class BluetoothSyncService extends Service {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    // TODO: On some phones, this incorrectly returns false when the Bluetooth radio is off even though BLE advertise is supported
-    public static boolean isSupported(Context context) {
-        PackageManager packageManager = context.getPackageManager();
-        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) || !packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH))
-            return false;
-
-        BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-        BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
-        return bluetoothAdapter != null && getBluetoothAdapterAddress(bluetoothAdapter) != null && bluetoothAdapter.isMultipleAdvertisementSupported();
+    public enum CanStartResult {
+        CAN_START,
+        BLUETOOTH_OR_BLE_UNSUPPORTED,
+        BLUETOOTH_OFF,
+        BLUETOOTH_ADDRESS_UNAVAILABLE;
     }
 
-    public static boolean isStartable(Context context) {
-        if (!isSupported(context))
-            return false;
+    public static CanStartResult canStart(Context context) {
+        PackageManager packageManager = context.getPackageManager();
+        BluetoothAdapter bluetoothAdapter = getBluetoothAdapter(context);
+        if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
+            return CanStartResult.BLUETOOTH_OFF;
+        } else if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) ||
+                !packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH) ||
+                !bluetoothAdapter.isMultipleAdvertisementSupported()) {
+            return CanStartResult.BLUETOOTH_OR_BLE_UNSUPPORTED;
+        } else if (getBluetoothAdapterAddress(bluetoothAdapter, context) == null) {
+            return CanStartResult.BLUETOOTH_ADDRESS_UNAVAILABLE;
+        }
 
-        BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-        BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
-        return bluetoothAdapter != null && bluetoothAdapter.isEnabled();
+        return CanStartResult.CAN_START;
     }
 
     public static void startOrPromptBluetooth(Context context) {
-        if (!BluetoothSyncService.isSupported(context)) {
-            Log.d(TAG, "BLE not supported, not starting BLE sync service");
-            Toast.makeText(context, R.string.bluetooth_not_supported, Toast.LENGTH_LONG).show();
-            return;
+        switch (canStart(context)) {
+            case CAN_START:
+                Log.d(TAG, "Starting BLE sync service");
+                context.startService(new Intent(context, BluetoothSyncService.class));
+                break;
+            case BLUETOOTH_OR_BLE_UNSUPPORTED:
+                Log.d(TAG, "BLE not supported, not starting BLE sync service");
+                Toast.makeText(context, R.string.bluetooth_not_supported, Toast.LENGTH_LONG).show();
+                break;
+            case BLUETOOTH_OFF:
+                Log.d(TAG, "BLE supported but Bluetooth is off; will prompt for Bluetooth and start once it's on");
+                Toast.makeText(context, R.string.bluetooth_ask_enable, Toast.LENGTH_LONG).show();
+                context.startActivity(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
+                // BluetoothSyncServiceManager will start this service once Bluetooth is on.
+                break;
+            case BLUETOOTH_ADDRESS_UNAVAILABLE:
+                Log.d(TAG, "BLE supported but MAC address is unavailable; will prompt for address and start once it's available");
+                Toast.makeText(context, R.string.bluetooth_ask_address, Toast.LENGTH_LONG).show();
+                // TODO: Open the app's settings? Maybe getting the address should be part of onboarding UI
+                // BluetoothSyncServiceManager will start this (re)start this service when the address changes.
+                break;
         }
+    }
 
-        if (BluetoothSyncService.isStartable(context)) {
-            Log.d(TAG, "BLE supported and Bluetooth is on; starting BLE sync service");
-            context.startService(new Intent(context, BluetoothSyncService.class));
-        } else {
-            Log.d(TAG, "BLE supported but Bluetooth is off; will prompt for Bluetooth and start once it's on");
-            Toast.makeText(context, R.string.bluetooth_ask, Toast.LENGTH_LONG).show();
-            context.startActivity(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
-            // BluetoothSyncServiceManager will start this service once Bluetooth is on.
-        }
+    private static BluetoothAdapter getBluetoothAdapter(Context context) {
+        BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+        if (bluetoothManager == null)
+            return null;
+
+        return bluetoothManager.getAdapter();
     }
 
     private AdvertiseData buildAdvertiseData() {
@@ -127,7 +150,7 @@ public class BluetoothSyncService extends Service {
         return builder.build();
     }
 
-    private static String getBluetoothAdapterAddress(BluetoothAdapter bluetoothAdapter) {
+    private static String getBluetoothAdapterAddress(BluetoothAdapter bluetoothAdapter, Context context) {
         @SuppressLint("HardwareIds") // Pair-free peer-to-peer communication should qualify as an "advanced telephony use case".
         String address = bluetoothAdapter.getAddress();
 
@@ -163,8 +186,11 @@ public class BluetoothSyncService extends Service {
         // https://stackoverflow.com/a/35984808/702467
         if (address.equals(FAKE_MAC_ADDRESS)) {
             Log.w(TAG, "Android is actively blocking requests to get the MAC address");
-            return null;
-            // TODO: In this case, present UI that asks the user to manually copy the MAC address from settings
+
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+            address = preferences.getString(SettingsActivity.KEY_BLUETOOTH_MAC, "").toUpperCase();
+            if (!MAC_PATTERN.matcher(address).matches())
+                return null;
         }
 
         return address;
@@ -208,6 +234,8 @@ public class BluetoothSyncService extends Service {
 
         // Scan filters on service UUIDs were completely broken on the devices I tested (fully updated Google Pixel and Moto G4 Play as of March 2017)
         // https://stackoverflow.com/questions/29664316/bluetooth-le-scan-filter-not-working
+        // TODO: Check if that's supported using bluetoothAdapter.isOffloadedFilteringSupported/isOffloadedScanBatchingSupported
+        // https://stackoverflow.com/questions/26482611/chipsets-devices-supporting-android-5-ble-peripheral-mode
         bluetoothLeScanner.startScan(null /*filters*/, buildScanSettings(),
                 new ScanCallback() {
                     @Override
@@ -246,6 +274,9 @@ public class BluetoothSyncService extends Service {
     }
 
     private void stopBluetoothLeDiscovery() {
+        if (!bluetoothAdapter.isEnabled())
+            return;
+
         if (bluetoothLeAdvertiser != null) {
             bluetoothLeAdvertiser.stopAdvertising(new AdvertiseCallback() {
                 @Override
@@ -256,13 +287,15 @@ public class BluetoothSyncService extends Service {
             });
         }
 
-        bluetoothLeScanner.stopScan(new ScanCallback() {
-            @Override
-            public void onScanFailed(int errorCode) {
-                super.onScanFailed(errorCode);
-                Log.e(TAG, "BLE scan failed to stop: error " + errorCode);
-            }
-        });
+        if (bluetoothLeScanner != null) {
+            bluetoothLeScanner.stopScan(new ScanCallback() {
+                @Override
+                public void onScanFailed(int errorCode) {
+                    super.onScanFailed(errorCode);
+                    Log.e(TAG, "BLE scan failed to stop: error " + errorCode);
+                }
+            });
+        }
     }
 
     private class BluetoothClassicServer extends Thread {
@@ -280,7 +313,7 @@ public class BluetoothSyncService extends Service {
         public void run() {
             BluetoothSocket socket = null;
 
-            while (started) {
+            while (bluetoothAdapter.isEnabled() && started) {
                 String macAddress = null;
                 try {
                     // This will block until there is a connection
@@ -352,7 +385,7 @@ public class BluetoothSyncService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
 
-        if (!isStartable(this)) {
+        if (canStart(this) != CanStartResult.CAN_START) {
             Log.e(TAG, "Trying to start the service even though Bluetooth is off or BLE is unsupported");
             stopSelf(startId);
             return START_NOT_STICKY;
@@ -363,13 +396,12 @@ public class BluetoothSyncService extends Service {
             return START_STICKY;
         }
 
-        BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-        bluetoothAdapter = bluetoothManager.getAdapter();
+        bluetoothAdapter = getBluetoothAdapter(this);
 
         // First half identifies that the advertisement is for Noise.
         // Second half is the MAC address of this device's Bluetooth adapter so that clients know how to connect to it.
         // These are not listed separately in the advertisement because a UUID is 16 bytes and ads are limited to 31 bytes.
-        String macAddress = getBluetoothAdapterAddress(bluetoothAdapter);
+        String macAddress = getBluetoothAdapterAddress(bluetoothAdapter, this);
         if (macAddress == null) {
             Log.e(TAG, "Unable to get this device's Bluetooth MAC address");
             stopSelf(startId);
@@ -394,6 +426,8 @@ public class BluetoothSyncService extends Service {
 
     @Override
     public void onDestroy() {
+        started = false;
+
         stopBluetoothLeDiscovery();
 
         // TODO: Verify that this actually stops the thread
@@ -402,7 +436,6 @@ public class BluetoothSyncService extends Service {
         // TODO: Stop all BluetoothClassicClient threads
 
         Toast.makeText(this, R.string.bluetooth_sync_stopped, Toast.LENGTH_LONG).show();
-        started = false;
         Log.d(TAG, "Stopped");
         super.onDestroy();
     }

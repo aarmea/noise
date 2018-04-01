@@ -10,6 +10,8 @@ import android.support.v7.widget.Toolbar;
 import com.alternativeinfrastructures.noise.R;
 
 public class SettingsActivity extends AppCompatActivity {
+    public static final String KEY_BLUETOOTH_MAC = "pref_key_bluetooth_mac";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
