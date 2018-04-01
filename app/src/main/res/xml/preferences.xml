@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="@string/pref_hardware"
+        android:key="pref_key_hardware">
+        <EditTextPreference
+            android:key="pref_key_bluetooth_mac"
+            android:title="@string/pref_title_bluetooth_mac"
+            android:summary="@string/pref_summary_bluetooth_mac"
+            android:dialogMessage="@string/pref_message_bluetooth_mac" />
+    </PreferenceCategory>
+</PreferenceScreen>

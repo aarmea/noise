@@ -49,6 +49,9 @@ public class ConversationList extends AppCompatActivity {
             case R.id.action_raw_message_list:
                 startActivity(new Intent(this, RawMessageList.class));
                 return true;
+            case R.id.action_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                return true;
         }
 
         return super.onOptionsItemSelected(item);

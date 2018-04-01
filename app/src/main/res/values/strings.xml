@@ -3,9 +3,15 @@
     <string name="conversation_view_title">Noise</string>
     <string name="raw_message_view_title">Raw Messages</string>
     <string name="action_raw_message_list">Debug: raw messages</string>
+    <string name="settings_title">Settings</string>
 
     <string name="bluetooth_not_supported">Noise cannot sync over Bluetooth because Bluetooth LE is not supported on this device.</string>
     <string name="bluetooth_ask">Enable Bluetooth to let Noise send and receive messages.</string>
     <string name="bluetooth_sync_started">Bluetooth is on. Noise will now send and receive messages in the background.</string>
     <string name="bluetooth_sync_stopped">Bluetooth is off. Noise will not be able to send or receive messages.</string>
+
+    <string name="pref_hardware">Hardware</string>
+    <string name="pref_title_bluetooth_mac">Bluetooth MAC address</string>
+    <string name="pref_summary_bluetooth_mac">Required to send and receive messages over Bluetooth</string>
+    <string name="pref_message_bluetooth_mac">The hardware Bluetooth address is needed to send and receive messages over Bluetooth. Copy this from Android Settings -> System -> About Phone -> Status -> Bluetooth address.</string>
 </resources>
