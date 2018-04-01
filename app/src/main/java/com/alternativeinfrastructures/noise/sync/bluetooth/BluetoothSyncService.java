@@ -71,11 +71,12 @@ public class BluetoothSyncService extends Service {
     public static CanStartResult canStart(Context context) {
         PackageManager packageManager = context.getPackageManager();
         BluetoothAdapter bluetoothAdapter = getBluetoothAdapter(context);
-        if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
+        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH) ||
+                !packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            return CanStartResult.BLUETOOTH_OR_BLE_UNSUPPORTED;
+        } else if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
             return CanStartResult.BLUETOOTH_OFF;
-        } else if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) ||
-                !packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH) ||
-                !bluetoothAdapter.isMultipleAdvertisementSupported()) {
+        } else if (!bluetoothAdapter.isMultipleAdvertisementSupported()) {
             return CanStartResult.BLUETOOTH_OR_BLE_UNSUPPORTED;
         } else if (getBluetoothAdapterAddress(bluetoothAdapter, context) == null) {
             return CanStartResult.BLUETOOTH_ADDRESS_UNAVAILABLE;
