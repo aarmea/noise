@@ -4,6 +4,7 @@ import android.os.Looper;
 import android.util.Base64;
 import android.util.Log;
 
+import com.alternativeinfrastructures.noise.NoiseDatabase;
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.Index;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
@@ -29,7 +30,7 @@ import okio.BufferedSink;
 import okio.BufferedSource;
 import okio.Okio;
 
-@Table(database = MessageDatabase.class)
+@Table(database = NoiseDatabase.class)
 public class UnknownMessage extends BaseRXModel {
     public static final String TAG = "UnknownMessage";
     // TODO: Design and implement database syncing across devices
@@ -188,7 +189,7 @@ public class UnknownMessage extends BaseRXModel {
             if (!messageToSave.isValid())
                 throw new InvalidMessageException();
 
-            FlowManager.getDatabase(MessageDatabase.class).beginTransactionAsync((DatabaseWrapper databaseWrapper) -> {
+            FlowManager.getDatabase(NoiseDatabase.class).beginTransactionAsync((DatabaseWrapper databaseWrapper) -> {
                 long equalMessages = SQLite.selectCountOf().from(UnknownMessage.class)
                         .where(UnknownMessage_Table.payload.eq(messageToSave.payload)).count();
                 if (equalMessages > 0) {

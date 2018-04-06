@@ -3,6 +3,7 @@ package com.alternativeinfrastructures.noise.storage;
 import android.os.Looper;
 import android.util.Log;
 
+import com.alternativeinfrastructures.noise.NoiseDatabase;
 import com.raizlabs.android.dbflow.annotation.ForeignKey;
 import com.raizlabs.android.dbflow.annotation.ForeignKeyAction;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
@@ -24,7 +25,7 @@ import util.hash.MurmurHash3;
 
 // Actual bloom filter implementation based heavily on this guide:
 // http://blog.michaelschmatz.com/2016/04/11/how-to-write-a-bloom-filter-cpp/
-@Table(database = MessageDatabase.class)
+@Table(database = NoiseDatabase.class)
 public class BloomFilter extends BaseRXModel {
     public static final String TAG = "BloomFilter";
 
@@ -96,6 +97,7 @@ public class BloomFilter extends BaseRXModel {
         for (int hash = messageVector.nextSetBit(0); hash != -1; hash = messageVector.nextSetBit(hash+1))
             hashes.add(hash);
 
+        // TODO: Implement Noise message priority - order by date and zero bits
         return RXSQLite.rx(SQLite.select(UnknownMessage_Table.ALL_COLUMN_PROPERTIES)
                 .from(UnknownMessage.class).leftOuterJoin(BloomFilter.class)
                 .on(UnknownMessage_Table.id.eq(BloomFilter_Table.message_id))
