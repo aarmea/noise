@@ -20,4 +20,6 @@
     <string name="prompt_username">Username</string>
     <string name="button_create_identity">Create</string>
     <string name="username_requirements">Username must be between 5 and 31 characters</string>
+    <string name="identity_spinner_title">Creating your identity</string>
+    <string name="identity_spinner_message">Before you can send and receive private messages, Noise needs to generate and sign a key pair. This might take a minute.</string>
 </resources>

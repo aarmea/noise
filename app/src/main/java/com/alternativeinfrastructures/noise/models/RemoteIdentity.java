@@ -18,16 +18,6 @@ import io.reactivex.Single;
 
 @Table(database = NoiseDatabase.class)
 public class RemoteIdentity extends BaseRXModel {
-    // public static Single<RemoteIdentity> createIdentityAndAnnouncementAsync(
-    //         String username, int deviceId, IdentityKey identityKey) throws UnknownMessage.PayloadTooLargeException, IOException {
-    //     RemoteIdentity identity = new RemoteIdentity();
-    //     identity.username = username;
-    //     identity.deviceId = deviceId;
-    //     identity.identityKey = identityKey;
-    //     return IdentityAnnouncementMessage.createAndSignAsync(identity)
-    //             .map((UnknownMessage message) -> identity);
-    // }
-
     public RemoteIdentity(String username, int deviceId, IdentityKey identityKey) {
         this.username = username;
         this.deviceId = deviceId;

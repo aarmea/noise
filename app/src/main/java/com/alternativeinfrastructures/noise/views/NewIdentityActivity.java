@@ -1,5 +1,6 @@
 package com.alternativeinfrastructures.noise.views;
 
+import android.app.ProgressDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -28,6 +29,12 @@ public class NewIdentityActivity extends AppCompatActivity {
         Button createIdentityButton = (Button) findViewById(R.id.createIdentityButton);
         String usernameRequirements = getString(R.string.username_requirements);
 
+        ProgressDialog signingDialog = new ProgressDialog(this);
+        signingDialog.setTitle(R.string.identity_spinner_title);
+        signingDialog.setMessage(getString(R.string.identity_spinner_message));
+        signingDialog.setCancelable(false);
+
+
         usernameEdit.addTextChangedListener(new TextValidator(usernameEdit) {
             @Override
             public void validate(TextView textView, String text) {
@@ -41,10 +48,14 @@ public class NewIdentityActivity extends AppCompatActivity {
             String username = usernameEdit.getText().toString();
             Log.d(TAG, "Creating identity with username: " + username);
 
+            signingDialog.show();
+
             try {
-                LocalIdentity.createNew(username).subscribe();
-                // TODO: UI showing that we're waiting for the identity message to sign
-                // TODO: Close the view once we have an identity
+                LocalIdentity.createNew(username).subscribe((Boolean success) -> {
+                    signingDialog.dismiss();
+                    finish();
+                });
+                // TODO: A view that shows the identity
             } catch (Exception e) {
                 Log.e(TAG, "Error creating an identity", e);
             }

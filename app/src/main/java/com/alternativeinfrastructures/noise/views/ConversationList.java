@@ -38,6 +38,7 @@ public class ConversationList extends AppCompatActivity {
         });
 
         if (SQLite.selectCountOf().from(LocalIdentity.class).count() < 1) {
+            // TODO: Prevent the back button from bringing us back to the ConversationList until there's an identity
             Log.d(TAG, "No identities exist, creating a new one");
             startActivity(new Intent(this, NewIdentityActivity.class));
         }

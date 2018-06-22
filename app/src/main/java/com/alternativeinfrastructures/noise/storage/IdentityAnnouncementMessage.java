@@ -70,6 +70,6 @@ public class IdentityAnnouncementMessage extends UnknownMessage {
     public RemoteIdentity getIdentity() { return identity; }
 
     // TODO: Tune this value
-    private final static byte DEFAULT_ZERO_BITS = 20;
+    public final static byte DEFAULT_ZERO_BITS = 22;
     private final static int IDENTITY_KEY_SIZE = ECPublicKey.KEY_SIZE;
 }
