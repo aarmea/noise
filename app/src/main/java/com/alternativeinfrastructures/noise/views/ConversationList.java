@@ -6,14 +6,18 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
 import com.alternativeinfrastructures.noise.R;
+import com.alternativeinfrastructures.noise.models.LocalIdentity;
 import com.alternativeinfrastructures.noise.views.debug.RawMessageList;
+import com.raizlabs.android.dbflow.sql.language.SQLite;
 
 public class ConversationList extends AppCompatActivity {
+    public static final String TAG = "ConversationList";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +36,11 @@ public class ConversationList extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        if (SQLite.selectCountOf().from(LocalIdentity.class).count() < 1) {
+            Log.d(TAG, "No identities exist, creating a new one");
+            startActivity(new Intent(this, NewIdentityActivity.class));
+        }
     }
 
     // TODO: Implement conversations here

@@ -1,6 +1,7 @@
 package com.alternativeinfrastructures.noise.sync;
 
 import com.alternativeinfrastructures.noise.BuildConfig;
+import com.alternativeinfrastructures.noise.TestBase;
 import com.alternativeinfrastructures.noise.storage.BloomFilter;
 import com.alternativeinfrastructures.noise.storage.UnknownMessage;
 import com.alternativeinfrastructures.noise.storage.UnknownMessageTest;
@@ -12,6 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLog;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -30,7 +32,7 @@ import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class)
-public class StreamSyncTest {
+public class StreamSyncTest extends TestBase {
     static final long PIPE_SIZE = 16384;
     static final int TIMEOUT_VALUE = 10;
     static final TimeUnit TIMEOUT_UNIT = TimeUnit.SECONDS;
@@ -42,6 +44,8 @@ public class StreamSyncTest {
 
     @Before
     public void setup() {
+        super.setup();
+
         executors = Executors.newFixedThreadPool(4);
 
         firstToSecond = new Pipe(PIPE_SIZE);
@@ -64,9 +68,7 @@ public class StreamSyncTest {
     public void teardown() {
         executors.shutdown();
 
-        // DBFlow doesn't automatically close its database handle when a test ends.
-        // https://github.com/robolectric/robolectric/issues/1890#issuecomment-218880541
-        FlowManager.destroy();
+        super.teardown();
     }
 
     @Test
@@ -122,14 +124,13 @@ public class StreamSyncTest {
 
         ArrayList<UnknownMessage> testMessages = new ArrayList<UnknownMessage>();
         for (int i = 0; i < numTestMessages; ++i)
-            testMessages.add(UnknownMessage.createAndSignAsync(
-                    payload, UnknownMessageTest.ZERO_BITS).blockingGet());
+            testMessages.add(UnknownMessageTest.createTestMessage(payload));
 
         StreamSync.sendMessagesAsync(Flowable.fromIterable(testMessages), firstSink);
         List<UnknownMessage> receivedMessages =
                 StreamSync.receiveMessagesAsync(secondSource).toList().blockingGet();
 
         for (int i = 0; i < numTestMessages; ++i)
-            assertTrue(testMessages.get(i).equivalent(receivedMessages.get(i)));
+            assertEquals(testMessages, receivedMessages);
     }
 }

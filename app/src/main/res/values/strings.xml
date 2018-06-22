@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Noise</string>
     <string name="conversation_view_title">Noise</string>
+    <string name="create_identity_title">New Identity</string>
     <string name="raw_message_view_title">Raw Messages</string>
     <string name="action_raw_message_list">Debug: raw messages</string>
     <string name="settings_title">Settings</string>
@@ -15,4 +16,8 @@
     <string name="pref_title_bluetooth_mac">Bluetooth MAC address</string>
     <string name="pref_summary_bluetooth_mac">Required to send and receive messages over Bluetooth</string>
     <string name="pref_message_bluetooth_mac">The hardware Bluetooth address is needed to send and receive messages over Bluetooth. Copy this from Android Settings -> System -> About Phone -> Status -> Bluetooth address.</string>
+
+    <string name="prompt_username">Username</string>
+    <string name="button_create_identity">Create</string>
+    <string name="username_requirements">Username must be between 5 and 31 characters</string>
 </resources>

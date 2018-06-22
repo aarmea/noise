@@ -41,6 +41,7 @@ android {
 }
 
 dependencies {
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
@@ -52,13 +53,16 @@ dependencies {
 
     compile group: 'net.vidageek', name: 'mirror', version: '1.6.1'
 
-    compile 'com.squareup.okio:okio:1.14.0'
+    compile 'com.squareup.okio:okio:1.14.1'
 
     compile "io.reactivex.rxjava2:rxandroid:2.0.2"
-    compile "io.reactivex.rxjava2:rxjava:2.1.10"
+    compile "io.reactivex.rxjava2:rxjava:2.1.14"
 
     annotationProcessor "com.github.Raizlabs.DBFlow:dbflow-processor:${dbflow_version}"
     compile "com.github.Raizlabs.DBFlow:dbflow-core:${dbflow_version}"
     compile "com.github.Raizlabs.DBFlow:dbflow:${dbflow_version}"
     compile "com.github.Raizlabs.DBFlow:dbflow-rx2:${dbflow_version}"
+
+    compile 'org.whispersystems:signal-protocol-android:2.3.0'
+    compile 'com.github.stfalcon:chatkit:0.2.2'
 }

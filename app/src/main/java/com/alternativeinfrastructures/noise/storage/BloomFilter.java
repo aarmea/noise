@@ -13,6 +13,7 @@ import com.raizlabs.android.dbflow.rx2.structure.BaseRXModel;
 import com.raizlabs.android.dbflow.sql.language.CursorResult;
 import com.raizlabs.android.dbflow.sql.language.Method;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
+import com.raizlabs.android.dbflow.structure.database.DatabaseWrapper;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -59,7 +60,7 @@ public class BloomFilter extends BaseRXModel {
         return hashList;
     }
 
-    static void addMessage(UnknownMessage message) {
+    static void addMessage(UnknownMessage message, DatabaseWrapper databaseWrapper) {
         if (Looper.getMainLooper().getThread() == Thread.currentThread())
             Log.e(TAG, "Attempting to save on the UI thread");
 
@@ -68,7 +69,7 @@ public class BloomFilter extends BaseRXModel {
             row.message = message;
             row.hash = hash;
             // blockingGet is okay here because this is always called from within a Transaction
-            row.save().blockingGet();
+            row.save(databaseWrapper).blockingGet();
         }
     }
 

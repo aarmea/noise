@@ -1,12 +1,10 @@
-Noise
-=====
+# Noise
 
 A chat app for the end of the world.
 
 [![Build Status](https://travis-ci.org/aarmea/noise.svg?branch=master)](https://travis-ci.org/aarmea/noise)
 
-What's wrong with chat today
-----------------------------
+## What's wrong with chat today
 
 On traditional chat platforms, mobile devices connect over the Internet to a central server which is responsible for relaying messages to their destinations. This has a few problems:
 
@@ -21,8 +19,7 @@ On traditional chat platforms, mobile devices connect over the Internet to a cen
 [censorship-nk]: https://en.wikipedia.org/wiki/Human_rights_in_North_Korea#Civil_liberties
 [censorship-turkey]: https://www.afp.com/en/news/826/turkey-gives-watchdog-power-block-internet-broadcasts-doc-12z0r61
 
-How Noise will fix this
------------------------
+## How Noise will fix this
 
 A formal paper describing Noise could be titled: "Adapting epidemic routing for commodity phones in adversarial conditions". Let's unwrap this:
 
@@ -46,8 +43,26 @@ This provides a prioritized flat database of cleartext messages. Two-way chat ca
 
 I also plan on making this database available as a local API to allow developers to build robust communications into their apps.
 
-What works so far
------------------
+## What works so far
 
 * Epidemic routing over Bluetooth
 * Proof-of-work for message validation
+
+## Legal
+
+### Cryptography notice
+
+This distribution includes cryptographic software. The country in which you currently reside may have restrictions on the import, possession, use, and/or re-export to another country, of encryption software.
+BEFORE using any encryption software, please check your country's laws, regulations and policies concerning the import, possession, or use, and re-export of encryption software, to see if this is permitted.
+See <http://www.wassenaar.org/> for more information.
+
+The U.S. Government Department of Commerce, Bureau of Industry and Security (BIS), has classified this software as Export Commodity Control Number (ECCN) 5D002.C.1, which includes information security software using or performing cryptographic functions with asymmetric algorithms.
+The form and manner of this distribution makes it eligible for export under the License Exception ENC Technology Software Unrestricted (TSU) exception (see the BIS Export Administration Regulations, Section 740.13) for both object code and source code.
+
+### Experimental software
+
+This project has not been reviewed by a security expert. If you entrust Noise with sensitive information, you are doing so at your own risk.
+
+### License
+
+You may use Noise under the terms of the MIT license. See LICENSE for more details.
