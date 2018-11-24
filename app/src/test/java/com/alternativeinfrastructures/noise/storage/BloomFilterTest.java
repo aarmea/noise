@@ -1,23 +1,16 @@
 package com.alternativeinfrastructures.noise.storage;
 
-import com.alternativeinfrastructures.noise.BuildConfig;
 import com.alternativeinfrastructures.noise.TestBase;
-import com.raizlabs.android.dbflow.config.FlowManager;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowLog;
 
 import java.util.BitSet;
 
 import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class)
 public class BloomFilterTest extends TestBase {
     @Test
     public void newMessageMembership() throws Exception {

@@ -14,7 +14,6 @@ import com.raizlabs.android.dbflow.data.Blob;
 import com.raizlabs.android.dbflow.rx2.structure.BaseRXModel;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.structure.database.DatabaseWrapper;
-import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -290,7 +289,7 @@ public class UnknownMessage extends BaseRXModel {
         // TODO: Sign on multiple threads
         // TODO: Use a memory-intensive proof-of-work function to minimize the impact of bogus messages signed by ASICs (like Ethereum)
         // http://www.ethdocs.org/en/latest/introduction/what-is-ethereum.html#how-does-ethereum-work
-        if (Looper.getMainLooper().getThread() == Thread.currentThread())
+        if (Looper.getMainLooper() == Looper.myLooper())
             Log.e(TAG, "Attempting to sign on the UI thread");
 
         Log.d(TAG, "Signing started");

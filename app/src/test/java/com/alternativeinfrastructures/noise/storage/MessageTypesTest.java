@@ -18,7 +18,7 @@ import java.util.UUID;
 import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class)
+// @Config(constants = BuildConfig.class)
 public class MessageTypesTest extends TestBase {
     @Test
     public void downcastUnknownType() throws Exception {

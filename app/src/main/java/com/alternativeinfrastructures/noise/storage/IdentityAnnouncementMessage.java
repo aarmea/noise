@@ -4,7 +4,6 @@ import com.alternativeinfrastructures.noise.NoiseDatabase;
 import com.alternativeinfrastructures.noise.models.RemoteIdentity;
 
 import com.raizlabs.android.dbflow.annotation.ForeignKey;
-import com.raizlabs.android.dbflow.annotation.ForeignKeyAction;
 import com.raizlabs.android.dbflow.annotation.Index;
 import com.raizlabs.android.dbflow.annotation.Table;
 

@@ -61,7 +61,7 @@ public class BloomFilter extends BaseRXModel {
     }
 
     static void addMessage(UnknownMessage message, DatabaseWrapper databaseWrapper) {
-        if (Looper.getMainLooper().getThread() == Thread.currentThread())
+        if (Looper.getMainLooper() == Looper.myLooper())
             Log.e(TAG, "Attempting to save on the UI thread");
 
         for (int hash : hashMessage(message)) {

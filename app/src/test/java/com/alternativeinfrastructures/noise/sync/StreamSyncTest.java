@@ -31,7 +31,7 @@ import okio.Pipe;
 import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class)
+// @Config(constants = BuildConfig.class)
 public class StreamSyncTest extends TestBase {
     static final long PIPE_SIZE = 16384;
     static final int TIMEOUT_VALUE = 10;

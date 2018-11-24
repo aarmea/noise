@@ -1,17 +1,11 @@
 package com.alternativeinfrastructures.noise.storage;
 
-import com.alternativeinfrastructures.noise.BuildConfig;
 import com.alternativeinfrastructures.noise.TestBase;
-import com.raizlabs.android.dbflow.config.FlowManager;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowLog;
 
 import java.io.ByteArrayInputStream;
 import java.util.UUID;
@@ -21,7 +15,6 @@ import okio.Okio;
 import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class)
 public class UnknownMessageTest extends TestBase {
     public static UnknownMessage createTestMessage(byte[] payload) throws Exception {
         final byte zeroBits = 10;
