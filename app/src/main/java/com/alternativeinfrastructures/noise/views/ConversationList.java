@@ -29,13 +29,7 @@ public class ConversationList extends AppCompatActivity {
         setTitle(R.string.conversation_view_title);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        fab.setOnClickListener(view -> startActivity(new Intent(ConversationList.this, NewConversationActivity.class)));
 
         if (SQLite.selectCountOf().from(LocalIdentity.class).count() < 1) {
             // TODO: Prevent the back button from bringing us back to the ConversationList until there's an identity

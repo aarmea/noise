@@ -5,4 +5,5 @@
     <dimen name="fab_margin">16dp</dimen>
 
     <dimen name="control_margin">16dp</dimen>
+    <dimen name="search_height">48dp</dimen>
 </resources>

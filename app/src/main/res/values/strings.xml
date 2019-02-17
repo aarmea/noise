@@ -5,6 +5,8 @@
     <string name="raw_message_view_title">Raw Messages</string>
     <string name="action_raw_message_list">Debug: raw messages</string>
     <string name="settings_title">Settings</string>
+    <string name="new_conversation_title">Create new conversation</string>
+    <string name="new_conversation_hint">Username</string>
 
     <string name="bluetooth_not_supported">Noise cannot sync over Bluetooth because Bluetooth LE beacons are not supported on this device.</string>
     <string name="bluetooth_ask_enable">Enable Bluetooth to let Noise send and receive messages.</string>
