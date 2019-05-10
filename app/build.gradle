@@ -68,4 +68,8 @@ dependencies {
 
     implementation 'org.whispersystems:signal-protocol-android:2.3.0'
     implementation 'com.github.stfalcon:chatkit:0.2.2'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+}
+repositories {
+    mavenCentral()
 }
