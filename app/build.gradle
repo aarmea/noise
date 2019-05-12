@@ -65,6 +65,8 @@ dependencies {
     implementation "com.github.Raizlabs.DBFlow:dbflow-core:${dbflow_version}"
     implementation "com.github.Raizlabs.DBFlow:dbflow:${dbflow_version}"
     implementation "com.github.Raizlabs.DBFlow:dbflow-rx2:${dbflow_version}"
+    implementation "com.github.Raizlabs.DBFlow:dbflow-kotlinextensions:${dbflow_version}"
+    implementation "com.github.Raizlabs.DBFlow:dbflow-rx2-kotlinextensions:${dbflow_version}"
 
     implementation 'org.whispersystems:signal-protocol-android:2.3.0'
     implementation 'com.github.stfalcon:chatkit:0.2.2'
