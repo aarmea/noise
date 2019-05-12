@@ -4,12 +4,12 @@ import com.alternativeinfrastructures.noise.NoiseDatabase;
 import com.alternativeinfrastructures.noise.models.signal.TypeConverters;
 import com.alternativeinfrastructures.noise.storage.IdentityAnnouncementMessage;
 import com.alternativeinfrastructures.noise.storage.UnknownMessage;
-import com.raizlabs.android.dbflow.annotation.Column;
-import com.raizlabs.android.dbflow.annotation.ForeignKey;
-import com.raizlabs.android.dbflow.annotation.Index;
-import com.raizlabs.android.dbflow.annotation.PrimaryKey;
-import com.raizlabs.android.dbflow.annotation.Table;
-import com.raizlabs.android.dbflow.rx2.structure.BaseRXModel;
+import com.dbflow5.annotation.Column;
+import com.dbflow5.annotation.ForeignKey;
+import com.dbflow5.annotation.Index;
+import com.dbflow5.annotation.PrimaryKey;
+import com.dbflow5.annotation.Table;
+import com.dbflow5.reactivestreams.structure.BaseRXModel;
 
 import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.IdentityKeyPair;

@@ -3,9 +3,9 @@ package com.alternativeinfrastructures.noise.storage;
 import com.alternativeinfrastructures.noise.NoiseDatabase;
 import com.alternativeinfrastructures.noise.models.RemoteIdentity;
 
-import com.raizlabs.android.dbflow.annotation.ForeignKey;
-import com.raizlabs.android.dbflow.annotation.Index;
-import com.raizlabs.android.dbflow.annotation.Table;
+import com.dbflow5.annotation.ForeignKey;
+import com.dbflow5.annotation.Index;
+import com.dbflow5.annotation.Table;
 
 import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.InvalidKeyException;

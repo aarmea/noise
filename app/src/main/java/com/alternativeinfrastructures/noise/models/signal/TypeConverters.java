@@ -1,13 +1,13 @@
 package com.alternativeinfrastructures.noise.models.signal;
 
-import com.raizlabs.android.dbflow.converter.TypeConverter;
+import com.dbflow5.converter.TypeConverter;
 
 import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.state.SignedPreKeyRecord;
 
 public class TypeConverters {
-    @com.raizlabs.android.dbflow.annotation.TypeConverter
+    @com.dbflow5.annotation.TypeConverter
     public static class IdentityKeyPairConverter extends TypeConverter<byte[], IdentityKeyPair> {
         @Override
         public byte[] getDBValue(IdentityKeyPair model) {
@@ -24,7 +24,7 @@ public class TypeConverters {
         }
     }
 
-    @com.raizlabs.android.dbflow.annotation.TypeConverter
+    @com.dbflow5.annotation.TypeConverter
     public static class IdentityKeyConverter extends TypeConverter<byte[], IdentityKey> {
         @Override
         public byte[] getDBValue(IdentityKey model) {
@@ -41,7 +41,7 @@ public class TypeConverters {
         }
     }
 
-    @com.raizlabs.android.dbflow.annotation.TypeConverter
+    @com.dbflow5.annotation.TypeConverter
     public static class SignedPreKeyRecordConverter extends TypeConverter<byte[], SignedPreKeyRecord> {
         @Override
         public byte[] getDBValue(SignedPreKeyRecord model) {

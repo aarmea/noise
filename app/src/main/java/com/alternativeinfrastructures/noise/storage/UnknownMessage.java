@@ -5,15 +5,15 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.alternativeinfrastructures.noise.NoiseDatabase;
-import com.raizlabs.android.dbflow.annotation.Column;
-import com.raizlabs.android.dbflow.annotation.Index;
-import com.raizlabs.android.dbflow.annotation.PrimaryKey;
-import com.raizlabs.android.dbflow.annotation.Table;
-import com.raizlabs.android.dbflow.config.FlowManager;
-import com.raizlabs.android.dbflow.data.Blob;
-import com.raizlabs.android.dbflow.rx2.structure.BaseRXModel;
-import com.raizlabs.android.dbflow.sql.language.SQLite;
-import com.raizlabs.android.dbflow.structure.database.DatabaseWrapper;
+import com.dbflow5.annotation.Column;
+import com.dbflow5.annotation.Index;
+import com.dbflow5.annotation.PrimaryKey;
+import com.dbflow5.annotation.Table;
+import com.dbflow5.config.FlowManager;
+import com.dbflow5.data.Blob;
+import com.dbflow5.database.DatabaseWrapper;
+import com.dbflow5.query.SQLite;
+import com.dbflow5.reactivestreams.structure.BaseRXModel;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

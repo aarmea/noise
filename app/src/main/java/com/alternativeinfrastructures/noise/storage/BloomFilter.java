@@ -4,16 +4,16 @@ import android.os.Looper;
 import android.util.Log;
 
 import com.alternativeinfrastructures.noise.NoiseDatabase;
-import com.raizlabs.android.dbflow.annotation.ForeignKey;
-import com.raizlabs.android.dbflow.annotation.ForeignKeyAction;
-import com.raizlabs.android.dbflow.annotation.PrimaryKey;
-import com.raizlabs.android.dbflow.annotation.Table;
-import com.raizlabs.android.dbflow.rx2.language.RXSQLite;
-import com.raizlabs.android.dbflow.rx2.structure.BaseRXModel;
-import com.raizlabs.android.dbflow.sql.language.CursorResult;
-import com.raizlabs.android.dbflow.sql.language.Method;
-import com.raizlabs.android.dbflow.sql.language.SQLite;
-import com.raizlabs.android.dbflow.structure.database.DatabaseWrapper;
+import com.dbflow5.annotation.ForeignKey;
+import com.dbflow5.annotation.ForeignKeyAction;
+import com.dbflow5.annotation.PrimaryKey;
+import com.dbflow5.annotation.Table;
+import com.dbflow5.database.DatabaseWrapper;
+import com.dbflow5.rx2.language.RXSQLite;
+import com.dbflow5.reactivestreams.structure.BaseRXModel;
+import com.dbflow5.sql.language.CursorResult;
+import com.dbflow5.sql.language.Method;
+import com.dbflow5.sql.language.SQLite;
 
 import java.util.ArrayList;
 import java.util.BitSet;

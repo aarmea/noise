@@ -10,9 +10,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.alternativeinfrastructures.noise.R;
-import com.raizlabs.android.dbflow.list.FlowCursorList;
-import com.raizlabs.android.dbflow.list.FlowQueryList;
-import com.raizlabs.android.dbflow.sql.language.SQLite;
+import com.dbflow5.query.SQLite;
+import com.dbflow5.query.list.FlowCursorList;
+import com.dbflow5.query.list.FlowQueryList;
 
 import com.alternativeinfrastructures.noise.storage.UnknownMessage;
 import com.alternativeinfrastructures.noise.storage.UnknownMessage_Table;
