@@ -28,13 +28,13 @@ public class IdentityAnnouncementMessage extends UnknownMessage {
     protected IdentityAnnouncementMessage(UnknownMessage message) throws InvalidKeyException, IOException {
         super(message);
 
-        if (MessageTypes.get(publicType) != IdentityAnnouncementMessage.class)
+        if (MessageTypes.get(getPublicType()) != IdentityAnnouncementMessage.class)
             throw new ClassCastException();
 
-        BufferedSource payloadSource = Okio.buffer(Okio.source(new ByteArrayInputStream(payload.getBlob())));
+        BufferedSource payloadSource = Okio.buffer(Okio.source(new ByteArrayInputStream(getPayload().getBlob())));
 
         byte usernameLength = payloadSource.readByte();
-        String username = payloadSource.readString(usernameLength, UnknownMessage.PAYLOAD_CHARSET);
+        String username = payloadSource.readString(usernameLength, UnknownMessage.Companion.getPAYLOAD_CHARSET());
         int deviceId = payloadSource.readInt();
         byte[] identityKeyBytes = payloadSource.readByteArray(IDENTITY_KEY_SIZE);
 
@@ -49,12 +49,12 @@ public class IdentityAnnouncementMessage extends UnknownMessage {
         BufferedSink payloadSink = Okio.buffer(Okio.sink(payloadStream));
 
         payloadSink.writeByte((byte) Utf8.size(identity.getUsername()));
-        payloadSink.writeString(identity.getUsername(), PAYLOAD_CHARSET);
+        payloadSink.writeString(identity.getUsername(), Companion.getPAYLOAD_CHARSET());
         payloadSink.writeInt(identity.getDeviceId());
         payloadSink.write(identity.getIdentityKey().serialize(), 0 /*offset*/, IDENTITY_KEY_SIZE);
         payloadSink.flush();
 
-        return IdentityAnnouncementMessage.createAndSignAsync(
+        return IdentityAnnouncementMessage.Companion.createAndSignAsync(
                 payloadStream.toByteArray(), zeroBits, MessageTypes.get(IdentityAnnouncementMessage.class));
     }
 

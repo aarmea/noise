@@ -53,7 +53,7 @@ public class BloomFilter extends BaseRXModel {
 
         // TODO: Is using a non-cryptographic hash like murmurhash okay? An attacker can generate messages that match the hashes to try to block it
         MurmurHash3.LongPair primaryHash = new MurmurHash3.LongPair();
-        MurmurHash3.murmurhash3_x64_128(message.payload.getBlob(), 0 /*offset*/, UnknownMessage.PAYLOAD_SIZE, 0 /*seed*/, primaryHash);
+        MurmurHash3.murmurhash3_x64_128(message.getPayload().getBlob(), 0 /*offset*/, UnknownMessage.Companion.getPAYLOAD_SIZE(), 0 /*seed*/, primaryHash);
         for (int hashFunction = 0; hashFunction < NUM_HASHES; ++hashFunction)
             hashList.add((int) nthHash(primaryHash.val1, primaryHash.val2, hashFunction));
 

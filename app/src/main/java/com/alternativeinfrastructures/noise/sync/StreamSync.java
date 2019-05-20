@@ -186,7 +186,7 @@ public class StreamSync {
                 else if (messageType != Messages.MESSAGE.getValue())
                     messageEmitter.onError(new IOException("Expected a message but got " + messageType));
 
-                messageEmitter.onNext(UnknownMessage.fromSource(source));
+                messageEmitter.onNext(UnknownMessage.Companion.fromSource(source));
                 ++messageCount;
             }
 

@@ -12,10 +12,10 @@ public class MessageTypes {
 
     public static UnknownMessage downcastIfKnown(UnknownMessage message) {
         // Failure to downcast is non-fatal to allow store-and-forward of unknown message types
-        if (uuidToClass.containsKey(message.publicType)) {
-            Class<? extends UnknownMessage> subclass = uuidToClass.get(message.publicType);
+        if (uuidToClass.containsKey(message.getPublicType())) {
+            Class<? extends UnknownMessage> subclass = uuidToClass.get(message.getPublicType());
             if (subclass == null) {
-                Log.e(TAG, "Registered message type " + message.publicType + " does not have a corresponding class");
+                Log.e(TAG, "Registered message type " + message.getPublicType() + " does not have a corresponding class");
                 return null;
             }
             try {
