@@ -46,7 +46,7 @@ public class StreamSync {
 
         Log.d(TAG, "Connected to a peer");
 
-        final BitSet myMessageVector = BloomFilter.getMessageVectorAsync().blockingGet();
+        final BitSet myMessageVector = BloomFilter.Companion.getMessageVectorAsync().blockingGet();
         IOFutures<BitSet> messageVectorFutures = exchangeMessageVectorsAsync(myMessageVector, source, sink, ioExecutors);
 
         BitSet theirMessageVector;
@@ -66,7 +66,7 @@ public class StreamSync {
         vectorDifference.andNot(theirMessageVector);
 
         // TODO: Is this I/O as parallel as you think it is? Look into explicitly using separate threads for these
-        Flowable<UnknownMessage> myMessages = BloomFilter.getMatchingMessages(vectorDifference);
+        Flowable<UnknownMessage> myMessages = BloomFilter.Companion.getMatchingMessages(vectorDifference);
         sendMessagesAsync(myMessages, sink);
 
         Flowable<UnknownMessage> theirMessages = receiveMessagesAsync(source);
@@ -153,7 +153,7 @@ public class StreamSync {
             if (messageType != Messages.MESSAGE_VECTOR.getValue())
                 throw new IOException("Expected a message vector but got " + messageType);
 
-            byte[] theirMessageVectorByteArray = source.readByteArray(BloomFilter.SIZE_IN_BYTES);
+            byte[] theirMessageVectorByteArray = source.readByteArray(BloomFilter.Companion.getSIZE_IN_BYTES());
             return BitSet.valueOf(theirMessageVectorByteArray);
         });
 

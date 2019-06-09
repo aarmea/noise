@@ -18,7 +18,7 @@ class BloomFilterTest : TestBase() {
         val payload = "This is a test message".toByteArray()
         val message = UnknownMessageTest.createTestMessage(payload)
 
-        val messageVector = BloomFilter.getMessageVectorAsync().blockingGet()
+        val messageVector = BloomFilter.messageVectorAsync.blockingGet()
 
         // `-1` needed to remove the placeholder ending bit
         assertEquals(BloomFilter.NUM_HASHES.toLong(), (messageVector.cardinality() - 1).toLong())
@@ -38,7 +38,7 @@ class BloomFilterTest : TestBase() {
         assertEquals(message, messageFromAllVector)
 
         // Query with just this message's hashes
-        val filterVector = BloomFilter.getMessageVectorAsync().blockingGet()
+        val filterVector = BloomFilter.messageVectorAsync.blockingGet()
         val messageFromFilterVector = BloomFilter.getMatchingMessages(filterVector).toList().blockingGet()[0]
         assertEquals(message, messageFromFilterVector)
 
