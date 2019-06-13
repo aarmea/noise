@@ -28,7 +28,7 @@ public class IdentityAnnouncementMessage extends UnknownMessage {
     protected IdentityAnnouncementMessage(UnknownMessage message) throws InvalidKeyException, IOException {
         super(message);
 
-        if (MessageTypes.get(getPublicType()) != IdentityAnnouncementMessage.class)
+        if (MessageTypes.INSTANCE.get(getPublicType()) != IdentityAnnouncementMessage.class)
             throw new ClassCastException();
 
         BufferedSource payloadSource = Okio.buffer(Okio.source(new ByteArrayInputStream(getPayload().getBlob())));
@@ -55,7 +55,7 @@ public class IdentityAnnouncementMessage extends UnknownMessage {
         payloadSink.flush();
 
         return IdentityAnnouncementMessage.Companion.createAndSignAsync(
-                payloadStream.toByteArray(), zeroBits, MessageTypes.get(IdentityAnnouncementMessage.class));
+                payloadStream.toByteArray(), zeroBits, MessageTypes.INSTANCE.get(IdentityAnnouncementMessage.class));
     }
 
     @Override
