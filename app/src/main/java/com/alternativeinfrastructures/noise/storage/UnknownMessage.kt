@@ -271,7 +271,7 @@ open class UnknownMessage : BaseRXModel {
         val PAYLOAD_SIZE = 240
 
         @Throws(PayloadTooLargeException::class)
-        fun createAndSignAsync(payload: ByteArray, zeroBits: Byte, publicType: UUID): Single<UnknownMessage> {
+        fun rawCreateAndSignAsync(payload: ByteArray, zeroBits: Byte, publicType: UUID): Single<UnknownMessage> {
             var payload = payload
             if (payload.size < PAYLOAD_SIZE) {
                 val paddedPayload = ByteArray(PAYLOAD_SIZE)

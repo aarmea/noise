@@ -107,7 +107,7 @@ class UnknownMessageTest : TestBase() {
             val zeroBits: Byte = 10
             val publicType = UUID(0, 0)
 
-            return UnknownMessage.createAndSignAsync(payload, zeroBits, publicType).blockingGet()
+            return UnknownMessage.rawCreateAndSignAsync(payload, zeroBits, publicType).blockingGet()
         }
     }
 }

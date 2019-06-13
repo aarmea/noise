@@ -59,7 +59,7 @@ public class RawMessageList extends AppCompatActivity {
             public void onClick(View view) {
                 try {
                     byte[] payload = "This is an unencrypted test message".getBytes();
-                    UnknownMessage.Companion.createAndSignAsync(payload, TEST_ZERO_BITS, TEST_TYPE).subscribe();
+                    UnknownMessage.Companion.rawCreateAndSignAsync(payload, TEST_ZERO_BITS, TEST_TYPE).subscribe();
                 } catch (UnknownMessage.PayloadTooLargeException e) {
                     Log.e(TAG, "Message not created", e);
                 }

@@ -19,7 +19,7 @@ class MessageTypesTest : TestBase() {
         val payload = "This message should not downcast".toByteArray()
         val zeroBits: Byte = 10
         val type = UUID(0, 0)
-        val message = UnknownMessage.createAndSignAsync(payload, zeroBits, type).blockingGet()
+        val message = UnknownMessage.rawCreateAndSignAsync(payload, zeroBits, type).blockingGet()
 
         assertEquals(UnknownMessage::class.java, message.javaClass)
     }

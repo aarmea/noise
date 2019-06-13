@@ -38,7 +38,7 @@ public class LocalIdentity extends BaseRXModel {
                 identity.identityKeyPair, 0 /*signedPreKeyId*/);
         identity.remoteIdentity = identity.createRemoteIdentity();
 
-        return IdentityAnnouncementMessage.createAndSignAsync(identity.remoteIdentity, IdentityAnnouncementMessage.DEFAULT_ZERO_BITS)
+        return IdentityAnnouncementMessage.Companion.createAndSignAsync(identity.remoteIdentity, IdentityAnnouncementMessage.Companion.getDEFAULT_ZERO_BITS())
                 .flatMap((UnknownMessage) -> identity.save());
     }
 
