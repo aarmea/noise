@@ -38,7 +38,7 @@ public class NewIdentityActivity extends AppCompatActivity {
         usernameEdit.addTextChangedListener(new TextValidator(usernameEdit) {
             @Override
             public void validate(TextView textView, String text) {
-                boolean valid = LocalIdentity.validUsername(text);
+                boolean valid = LocalIdentity.Companion.validUsername(text);
                 textView.setError(valid ? null : usernameRequirements);
                 createIdentityButton.setEnabled(valid);
             }
@@ -51,7 +51,7 @@ public class NewIdentityActivity extends AppCompatActivity {
             signingDialog.show();
 
             try {
-                LocalIdentity.createNew(username).subscribe((Boolean success) -> {
+                LocalIdentity.Companion.createNew(username).subscribe((Boolean success) -> {
                     signingDialog.dismiss();
                     finish();
                 });
