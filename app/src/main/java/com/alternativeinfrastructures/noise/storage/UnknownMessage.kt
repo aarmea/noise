@@ -139,17 +139,15 @@ open class UnknownMessage : BaseRXModel {
     }
 
     override fun equals(`object`: Any?): Boolean {
-        val other: UnknownMessage
         if (`object` !is UnknownMessage)
             return false
 
-        other = `object`
-        return version == other.version &&
-                zeroBits == other.zeroBits &&
-                date == other.date &&
-                Arrays.equals(payload.blob, other.payload.blob) &&
-                counter == other.counter &&
-                publicType == other.publicType
+        return version == `object`.version &&
+                zeroBits == `object`.zeroBits &&
+                date == `object`.date &&
+                Arrays.equals(payload.blob, `object`.payload.blob) &&
+                counter == `object`.counter &&
+                publicType == `object`.publicType
     }
 
     @Throws(NotHashableException::class)
