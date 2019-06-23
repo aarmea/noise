@@ -25,7 +25,7 @@ import org.junit.Assert.*
 @RunWith(RobolectricTestRunner::class)
 class StreamSyncTest : TestBase() {
 
-    private var executors: ExecutorService? = null
+    private lateinit var executors: ExecutorService
     private var firstToSecond = Pipe(PIPE_SIZE)
     private var secondToFirst = Pipe(PIPE_SIZE)
     private var firstSource = Okio.buffer(secondToFirst.source())
@@ -42,7 +42,7 @@ class StreamSyncTest : TestBase() {
 
     @After
     override fun teardown() {
-        executors!!.shutdown()
+        executors.shutdown()
 
         super.teardown()
     }
@@ -79,9 +79,9 @@ class StreamSyncTest : TestBase() {
         assertEquals(firstMessageVector.length().toLong(), secondMessageVector.length().toLong())
 
         val firstFutures = StreamSync.exchangeMessageVectorsAsync(
-                firstMessageVector, firstSource, firstSink, executors!!)
+                firstMessageVector, firstSource, firstSink, executors)
         val secondFutures = StreamSync.exchangeMessageVectorsAsync(
-                secondMessageVector, secondSource, secondSink, executors!!)
+                secondMessageVector, secondSource, secondSink, executors)
 
         val firstMessageVectorAfterExchange = secondFutures.get()
         val secondMessageVectorAfterExchange = firstFutures.get()

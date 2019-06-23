@@ -54,7 +54,7 @@ public class SettingsActivity extends AppCompatActivity
             Log.d(TAG, "Bluetooth MAC changed, kicking service");
             Intent stopSyncServiceIntent = new Intent(this, BluetoothSyncService.class);
             stopService(stopSyncServiceIntent);
-            BluetoothSyncService.startOrPromptBluetooth(this);
+            BluetoothSyncService.Companion.startOrPromptBluetooth(this);
         }
     }
 
