@@ -67,4 +67,6 @@ class LocalIdentity : BaseRXModel() {
                     .flatMap { UnknownMessage -> identity.save() }
         }
     }
+
+    class MissingLocalIdentity : Exception()
 }
