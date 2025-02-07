@@ -4,6 +4,12 @@ A chat app for the end of the world.
 
 [![Build Status](https://travis-ci.org/aarmea/noise.svg?branch=master)](https://travis-ci.org/aarmea/noise)
 
+## Work-in-progress
+
+This is only an implementation of the sync protocol and message validation and prioritization mechanism. **There is no chat -- or any other features for end users -- implemented at this point.**
+
+If you need something that works immediately, check out the [Briar project](https://briarproject.org/), which utilizes a similar, albeit smaller, Bluetooth network. Notably, it does not attempt to solve the problem of sending a message widely via non-contacts while offline.
+
 ## What's wrong with chat today
 
 On traditional chat platforms, mobile devices connect over the Internet to a central server which is responsible for relaying messages to their destinations. This has a few problems:
